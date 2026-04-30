@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Resume Form</title>
+
+<style>
+body{
+  font-family: 'Poppins', sans-serif;
+  background:#f4f6f9;
+}
+
+.form{
+  max-width:750px;
+  margin:30px auto;
+  padding:25px;
+  background:white;
+  border-radius:10px;
+  box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+input, textarea{
+  width:100%;
+  padding:12px;
+  margin:12px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+label{
+  font-weight:600;
+}
+
+.note{
+  font-size:13px;
+  color:#555;
+}
+
+.error{
+  color:red;
+  font-size:13px;
+}
+
+button{
+  padding:10px;
+  margin-top:15px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+.save-btn{ background:#2563eb; color:white; }
+.add-btn{ background:#16a34a; color:white; }
+
+.box{
+  border:1px solid #ddd;
+  padding:15px;
+  margin-bottom:18px;
+  border-radius:6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="form">
+
+<h2>Personal Details *</h2>
+
+<label>Name:</label>
+<input id="fullName">
+<div id="nameError" class="error"></div>
+
+<label>Email:</label>
+<input id="email">
+<div id="emailError" class="error"></div>
+
+<label>Phone:</label>
+<input id="phone">
+<div id="phoneError" class="error"></div>
+
+<label>Address:</label>
+<input id="address">
+<div id="addressError" class="error"></div>
+
+<h3>Profile Image <span class="note">(Not Mandatory)</span></h3>
+<input type="file" id="profileImage" accept="image/*">
+
+<h3>Professional Links</h3>
+<input id="github" placeholder="GitHub">
+<input id="linkedin" placeholder="LinkedIn">
+<input id="hackerrank" placeholder="HackerRank">
+
+<h3>Skills</h3>
+<div id="skillsContainer">
+  <input placeholder="Enter skill">
+</div>
+<button class="add-btn" onclick="addSkill()">+ Add Skill</button>
+
+<h3>Projects <span class="note">(Not Mandatory)</span></h3>
+<div id="projectContainer"></div>
+<button class="add-btn" onclick="addProject()">+ Add Project</button>
+
+<h3>Custom Section <span class="note">(Not Mandatory)</span></h3>
+<div id="customContainer"></div>
+<button class="add-btn" onclick="addCustom()">+ Add Custom Section</button>
+
+<!-- EDUCATION -->
+<h3>Education</h3>
+
+<div class="box">
+<h4>10th</h4>
+
+<label>School Name:</label>
+<input id="school10">
+
+<label>Board:</label>
+<input id="board10">
+
+<label>Percentage:</label>
+<input id="percent10" type="number" min="0" max="100" step="any" oninput="limitPercent(this)">
+</div>
+
+<div class="box">
+<h4>12th</h4>
+
+<label>School Name:</label>
+<input id="school12">
+
+<label>Board:</label>
+<input id="board12">
+
+<label>Percentage:</label>
+<input id="percent12" type="number" min="0" max="100" step="any" oninput="limitPercent(this)">
+</div>
+
+<div class="box">
+<h4>UG</h4>
+
+<label>University / College Name:</label>
+<input id="boardUG" placeholder="e.g. Delhi University / ABC College">
+
+<label>CGPA / Percentage:</label>
+<input id="percentUG" type="number" min="0" max="100" step="any" oninput="limitPercent(this)">
+</div>
+
+<div class="box">
+<h4>PG <span class="note">(Not Mandatory)</span></h4>
+
+<label>University / College Name:</label>
+<input id="boardPG" placeholder="e.g. IIT Delhi / XYZ College">
+
+<label>CGPA / Percentage:</label>
+<input id="percentPG" type="number" min="0" max="100" step="any" oninput="limitPercent(this)">
+</div>
+
+<!-- EXPERIENCE -->
+<h3>Experience <span class="note">(Not Mandatory)</span></h3>
+<div id="experienceContainer"></div>
+<button class="add-btn" onclick="addExperience()">+ Add Experience</button>
+
+<!-- CERTIFICATES -->
+<h3>Certificates <span class="note">(Not Mandatory)</span></h3>
+<div id="certificateContainer"></div>
+<button class="add-btn" onclick="addCertificate()">+ Add Certificate</button>
+
+<br>
+
+<button type="button" class="save-btn" onclick="saveData()">Save Details</button>
+
+</div>
+
+<script>
+
+function addSkill(){
+  skillsContainer.innerHTML += `<input placeholder="Enter skill">`;
+}
+
+function addProject(){
+  projectContainer.innerHTML += `
+  <div class="box">
+    <input placeholder="Project Title">
+    <textarea placeholder="Description"></textarea>
+  </div>`;
+}
+
+function addCustom(){
+  customContainer.innerHTML += `
+  <div class="box">
+    <input placeholder="Section Heading">
+    <textarea placeholder="Description"></textarea>
+  </div>`;
+}
+
+function addExperience(){
+  experienceContainer.innerHTML += `
+  <div class="box">
+    <input placeholder="Role">
+    <input placeholder="Company">
+    <textarea placeholder="Description"></textarea>
+  </div>`;
+}
+
+function addCertificate(){
+  certificateContainer.innerHTML += `
+  <div class="box">
+    <input placeholder="Certificate">
+    <input placeholder="Issuer">
+  </div>`;
+}
+
+function limitPercent(input){
+  let val = parseFloat(input.value);
+
+  if(val > 100) input.value = 100;
+  if(val < 0) input.value = 0;
+}
+
+function validateForm(){
+  let valid = true;
+
+  // clear errors
+  nameError.innerText = "";
+  emailError.innerText = "";
+  phoneError.innerText = "";
+  addressError.innerText = "";
+
+  // name
+  if(fullName.value == "" || !isNaN(fullName.value)){
+    nameError.innerText = "Enter valid name";
+    valid = false;
+  }
+
+  // email
+  if(!email.value.includes("@") || !email.value.includes(".")){
+    emailError.innerText = "Invalid email";
+    valid = false;
+  }
+
+  // phone
+  if(phone.value.length != 10 || isNaN(phone.value)){
+    phoneError.innerText = "Invalid phone";
+    valid = false;
+  }
+
+  // address
+  if(address.value.length < 5){
+    addressError.innerText = "Enter proper address";
+    valid = false;
+  }
+
+  return valid;
+}
+
+function saveData(){
+
+  // validation check
+  if(!validateForm()) return;
+
+  let data = {
+    name: document.getElementById("fullName")?.value || "Unnamed Resume",
+    
+    email:email.value,
+    phone:phone.value,
+    address:address.value,
+    github:github.value,
+    linkedin:linkedin.value,
+    hackerrank:hackerrank.value
+  };
+  console.log("Name from form:", document.getElementById("fullName").value);
+
+  data.skills = [];
+  document.querySelectorAll("#skillsContainer input").forEach(i=>{
+    if(i.value) data.skills.push(i.value);
+  });
+
+  data.projects = [];
+  document.querySelectorAll("#projectContainer .box").forEach(box=>{
+    let i = box.querySelectorAll("input,textarea");
+    if(i[0].value) data.projects.push({title:i[0].value,desc:i[1].value});
+  });
+
+  data.custom = [];
+  document.querySelectorAll("#customContainer .box").forEach(box=>{
+    let i = box.querySelectorAll("input,textarea");
+    if(i[0].value) data.custom.push({heading:i[0].value,desc:i[1].value});
+  });
+
+  data.experience = [];
+  document.querySelectorAll("#experienceContainer .box").forEach(box=>{
+    let i = box.querySelectorAll("input,textarea");
+    if(i[0].value) data.experience.push({
+      role:i[0].value,
+      company:i[1].value,
+      desc:i[2].value
+    });
+  });
+
+  data.certificates = [];
+  document.querySelectorAll("#certificateContainer .box").forEach(box=>{
+    let i = box.querySelectorAll("input");
+    if(i[0].value) data.certificates.push({
+      name:i[0].value,
+      org:i[1].value
+    });
+  });
+
+  data.education = {
+    school10:school10.value,
+    board10:board10.value,
+    percent10:percent10.value,
+    school12:school12.value,
+    board12:board12.value,
+    percent12:percent12.value,
+    boardUG:boardUG.value,
+    percentUG:percentUG.value,
+    boardPG:boardPG.value,
+    percentPG:percentPG.value
+  };
+
+  const file = profileImage.files[0];
+
+  if(file){
+  const reader = new FileReader();
+  reader.onload = function(e){
+    data.image = e.target.result;
+
+    localStorage.setItem("resumeData", JSON.stringify(data));
+
+    // 🔥 THIS LINE FIXES YOUR ISSUE
+    sessionStorage.removeItem("saved");
+
+    redirect();
+  };
+  reader.readAsDataURL(file);
+
+  } else {
+    localStorage.setItem("resumeData", JSON.stringify(data));
+    sessionStorage.removeItem("saved");
+    redirect();
+  }
+}
+ function redirect(){
+
+  document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>Generating Resume...</h2>";
+
+  setTimeout(()=>{
+
+    const template = localStorage.getItem("template");
+
+    console.log("Template selected:", template);
+
+    if(!template){
+      alert("Template not selected!");
+      window.location.href = "categories.html";
+      return;
+    }
+
+    // 🔥 FIXED REDIRECT
+    if(template === "modern1"){
+      window.location.href = "templates code/modern1.html";
+    }
+    else if(template === "modern2"){
+      window.location.href = "templates code/modern2.html";
+    }
+    else{
+      window.location.href = "templates code/" + template + ".html";
+    }
+
+  },800);
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Resume Template</title>
+
+<style>
+body{
+  margin:0;
+  background:#ccc;
+  font-family:'Poppins',sans-serif;
+}
+
+/* A4 */
+.resume{
+  width:210mm;
+  min-height:290mm;
+  margin:0 auto;
+  background:white;
+  position:relative;
+  display:flex;
+}
+
+/* LEFT */
+.left{
+  width:35%;
+  background:#e6e6e6;
+  padding:200px 25px 25px;
+  box-sizing:border-box;
+}
+
+/* RIGHT */
+.right{
+  width:65%;
+  display:flex;
+  flex-direction:column;
+}
+
+/* GREY BLOCK */
+.top-grey{
+  position:absolute;
+  top:0;
+  left:0;
+  width:38%;
+  height:200px;
+  background:#dcdcdc;
+}
+
+/* HEADER */
+.header{
+  margin-top:40px;
+  min-height:140px;
+  background:#2c2f36;
+  color:white;
+  display:flex;
+  align-items:center;
+  padding-left:180px;
+  box-sizing:border-box;
+}
+
+/* PROFILE */
+.profile-circle{
+  position:absolute;
+  top:35px;
+  left:90px;
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  background:white;
+  padding:6px;
+  border:8px solid white;
+  z-index:10;
+}
+
+.profile-circle img{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+/* NAME */
+.name{
+  font-size:28px;
+  letter-spacing:2px;
+  font-weight:600;
+  word-break:break-word;
+}
+
+.role{
+  font-size:14px;
+  letter-spacing:1px;
+  margin-top:5px;
+}
+
+/* CONTENT */
+.content{
+  padding:25px;
+}
+
+/* SECTION */
+.section{
+  margin-bottom:25px;
+}
+
+.section h2{
+  font-size:14px;
+  letter-spacing:2px;
+  display:flex;
+  align-items:center;
+}
+
+.section h2::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:#999;
+  margin-left:10px;
+}
+
+/* TEXT SAFE */
+.about,
+.education,
+.education2,
+.languages,
+.cert{
+  line-height:1.5;
+  word-wrap:break-word;
+  margin-top:8px;
+}
+
+/* CONTACT */
+.contact{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:6px;
+  margin-bottom:20px;
+}
+
+/* TIMELINE */
+.timeline{
+  position:relative;
+  padding-left:20px;
+}
+
+.timeline::before{
+  content:"";
+  position:absolute;
+  left:5px;
+  top:0;
+  width:2px;
+  height:100%;
+  background:#999;
+}
+
+.job{
+  position:relative;
+  margin-bottom:20px;
+}
+
+.job::before{
+  content:"";
+  position:absolute;
+  left:-3px;
+  top:6px;
+  width:8px;
+  height:8px;
+  background:black;
+  border-radius:50%;
+}
+
+/* SKILLS */
+.skill{
+  margin-bottom:12px;
+}
+
+.bar{
+  height:5px;
+  width:80%;
+  background:black;
+  margin-top:5px;
+}
+
+/* CERTIFICATIONS */
+.certifications{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.cert{
+  width:48%;
+}
+</style>
+</head>
+
+<body>
+<div id="pdfArea">
+<div class="resume">
+
+  <div class="top-grey"></div>
+
+  <div class="profile-circle">
+    <img class="photo" src="">
+  </div>
+
+  <div class="left">
+
+    <div class="section">
+      <h2>ABOUT ME</h2>
+      <div class="about"></div>
+    </div>
+
+    <div class="section">
+      <h2>EDUCATION</h2>
+      <div class="education"></div>
+      <div class="education2"></div>
+    </div>
+
+    <div class="section">
+      <h2>SKILLS</h2>
+      <div class="skills"></div>
+    </div>
+
+    <div class="section">
+      <h2>LANGUAGE</h2>
+      <div class="languages"></div>
+    </div>
+
+  </div>
+
+  <div class="right">
+
+    <div class="header">
+      <div>
+        <div class="name"></div>
+        <div class="role"></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="contact">
+        <div class="phone"></div>
+        <div class="github"></div>
+        <div class="email"></div>
+        <div class="address"></div>
+      </div>
+
+      <div class="section">
+        <h2>EXPERIENCE</h2>
+        <div class="timeline"></div>
+      </div>
+
+      <div class="section">
+        <h2>CERTIFICATIONS</h2>
+        <div class="certifications"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+</div>
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+<script>
+try{
+
+const data = JSON.parse(localStorage.getItem("resumeData")) || {};
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+if(!sessionStorage.getItem("saved")){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template:"templates code/modern2.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    sessionStorage.setItem("saved", "true");
+}
+
+// NAME
+document.querySelector(".name").innerText = (data.name || "").trim();
+
+// ROLE
+if(data.role){
+  document.querySelector(".role").innerText = data.role;
+}else{
+  document.querySelector(".role").style.display="none";
+}
+
+// IMAGE
+if(data.image){
+  document.querySelector(".photo").src = data.image;
+}else{
+  document.querySelector(".profile-circle").style.display="none";
+}
+
+// ABOUT
+if(data.summary){
+  document.querySelector(".about").innerText = data.summary;
+}else{
+  document.querySelector(".about").closest(".section").style.display="none";
+}
+
+// CONTACT
+if(data.phone) document.querySelector(".phone").innerText = "📞 " + data.phone;
+if(data.email) document.querySelector(".email").innerText = "✉️ " + data.email;
+if(data.address) document.querySelector(".address").innerText = "📍 " + data.address;
+if(data.github) document.querySelector(".github").innerText = "🔗 " + data.github;
+
+// SKILLS
+const skillsDiv = document.querySelector(".skills");
+if(data.skills?.length){
+  skillsDiv.innerHTML = "";
+  data.skills.forEach(skill=>{
+    skillsDiv.innerHTML += `
+      <div class="skill">
+        ${skill}
+        <div class="bar"></div>
+      </div>
+    `;
+  });
+}else{
+  skillsDiv.closest(".section").style.display="none";
+}
+
+// EDUCATION
+// ===== EDUCATION (FINAL PERFECT FIX) =====
+let edu = data.education || {};
+
+// check properly if ANY real value exists
+let hasEducation =
+  (edu.school10 && edu.school10.trim() !== "") ||
+  (edu.school12 && edu.school12.trim() !== "") ||
+  (edu.boardUG && edu.boardUG.trim() !== "") ||
+  (edu.boardPG && edu.boardPG.trim() !== "");
+
+if(hasEducation){
+
+  let eduHTML = "";
+
+  if(edu.school10){
+    eduHTML += `<b>10th</b><br>${edu.school10}<br>${edu.percent10 || ""}%<br><br>`;
+  }
+
+  if(edu.school12){
+    eduHTML += `<b>12th</b><br>${edu.school12}<br>${edu.percent12 || ""}%<br><br>`;
+  }
+
+  if(edu.boardUG){
+    eduHTML += `<b>UG</b><br>${edu.boardUG}<br>${edu.percentUG || ""}<br><br>`;
+  }
+
+  if(edu.boardPG){
+    eduHTML += `<b>PG</b><br>${edu.boardPG}<br>${edu.percentPG || ""}`;
+  }
+
+  document.querySelector(".education").innerHTML = eduHTML;
+
+}else{
+  // 🔥 FULL SECTION HIDE
+  document.querySelector(".education").closest(".section").style.display = "none";
+}
+
+// LANGUAGE
+const langDiv = document.querySelector(".languages");
+if(data.custom?.length){
+  let html="";
+  data.custom.forEach(c=>{
+    if(c.heading?.toLowerCase().includes("language")){
+      html+=`<div>${c.desc}</div>`;
+    }
+  });
+  if(html) langDiv.innerHTML = html;
+  else langDiv.closest(".section").style.display="none";
+}else{
+  langDiv.closest(".section").style.display="none";
+}
+
+// EXPERIENCE
+const expDiv = document.querySelector(".timeline");
+if(data.experience?.length){
+  expDiv.innerHTML="";
+  data.experience.forEach(exp=>{
+    expDiv.innerHTML += `
+      <div class="job">
+        <b>${exp.role||""}</b><br>
+        ${exp.company||""}<br>
+        ${exp.desc||""}
+      </div>
+    `;
+  });
+}else{
+  expDiv.closest(".section").style.display="none";
+}
+
+// CERTIFICATIONS
+const certDiv = document.querySelector(".certifications");
+if(data.certificates?.length){
+  certDiv.innerHTML="";
+  data.certificates.forEach(c=>{
+    certDiv.innerHTML += `
+      <div class="cert">
+        <b>${c.name}</b><br>${c.org}
+      </div>
+    `;
+  });
+}else{
+  certDiv.closest(".section").style.display="none";
+}
+
+}catch(e){
+  console.error(e);
+}
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    let opt = {
+        margin: 0,
+        filename: (document.querySelector(".name").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.6,
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Premium Resume</title>
+
+<style>
+body{
+  margin:0;
+  background:#eaeaea;
+  font-family:'Segoe UI',sans-serif;
+}
+
+/* A4 */
+.resume{
+  width:210mm;
+  min-height:290mm;
+  margin:0 auto;
+  background:white;
+  box-sizing: border-box;
+}
+
+/* HEADER */
+.header{
+  height:170px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* HEADER IMAGE */
+.header img.banner{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* BLUE OVERLAY */
+.header::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:#2f4f5f;
+  opacity:0.6;
+}
+
+/* PROFILE PIC */
+.profile-pic{
+  position:absolute;
+  top:50%;
+  left:30px;
+  transform:translateY(-50%);
+  width:100px;
+  height:100px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid white;
+  z-index:2;
+}
+
+/* NAME */
+.header-content{
+  position:absolute;
+  left:150px;
+  bottom:25px;
+  color:white;
+  z-index:2;
+}
+
+.name{
+  font-size:28px;
+  font-weight:700;
+  letter-spacing:2px;
+}
+
+.role{
+  font-size:14px;
+}
+
+/* MAIN */
+.main{
+  display:flex;
+}
+
+/* LEFT */
+.left{
+  width:30%;
+  background:#f1f4f6;
+  padding:25px;
+}
+
+/* RIGHT (BASE COLOR FIX) */
+.right{
+  width:70%;
+  padding:25px;
+  background:linear-gradient(to bottom, #f9fbfc, #eef2f5);
+}
+
+/* SECTION */
+.section{
+  margin-bottom:25px;
+}
+
+.section h3{
+  font-size:12px;
+  letter-spacing:2px;
+  border-bottom:1px solid #ccc;
+  padding-bottom:5px;
+  color:#555;
+}
+
+/* TEXT */
+.text{
+  font-size:13px;
+  line-height:1.6;
+}
+
+/* LIST */
+ul{
+  padding-left:18px;
+}
+
+li{
+  margin-bottom:6px;
+}
+
+/* EXPERIENCE */
+.exp-item{
+  margin-bottom:12px;
+}
+</style>
+</head>
+
+<body>
+<div id="pdfArea">
+<div class="resume">
+
+  <!-- HEADER -->
+  <div class="header">
+
+    <!-- 🔥 CROPPED IMAGE -->
+    <img src="header.jpg" class="banner">
+
+    <!-- PROFILE IMAGE -->
+    <img class="profile-pic">
+
+    <!-- TEXT -->
+    <div class="header-content">
+      <div class="name"></div>
+      <div class="role"></div>
+    </div>
+
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- LEFT -->
+    <div class="left">
+
+      <div class="section" id="profileSec">
+        <h3>PROFILE</h3>
+        <div class="text summary"></div>
+      </div>
+
+      <div class="section" id="contactSec">
+        <h3>CONTACT</h3>
+        <div class="text contact"></div>
+      </div>
+
+      <div class="section" id="eduSec">
+        <h3>EDUCATION</h3>
+        <div class="text edu"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+
+      <div class="section" id="skillSec">
+        <h3>SKILLS</h3>
+        <ul class="skills"></ul>
+      </div>
+
+      <div class="section" id="expSec">
+        <h3>WORK EXPERIENCE</h3>
+        <div class="exp"></div>
+      </div>
+
+      <div class="section" id="certSec">
+        <h3>CERTIFICATIONS</h3>
+        <div class="cert"></div>
+      </div>
+
+      <!-- ✅ PROJECTS -->
+      <div class="section" id="projectSec">
+        <h3>PROJECTS</h3>
+        <div class="projects"></div>
+      </div>
+
+      <!-- ✅ CUSTOM -->
+      <div id="customContainer"></div>
+
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+<script>
+const data = JSON.parse(localStorage.getItem("resumeData")) || {};
+
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+if(!sessionStorage.getItem("saved")){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template: "templates code/modern3.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    sessionStorage.setItem("saved", "true");
+}
+
+/* NAME */
+if(data.name){
+  document.querySelector(".name").innerText = data.name;
+}else{
+  document.querySelector(".name").style.display="none";
+}
+
+/* ROLE */
+if(data.role){
+  document.querySelector(".role").innerText = data.role;
+}else{
+  document.querySelector(".role").style.display="none";
+}
+
+/* PROFILE IMAGE */
+if(data.image){
+  document.querySelector(".profile-pic").src = data.image;
+}else{
+  document.querySelector(".profile-pic").style.display="none";
+}
+
+/* PROFILE */
+if(data.summary){
+  document.querySelector(".summary").innerText = data.summary;
+}else{
+  document.getElementById("profileSec").style.display="none";
+}
+
+/* CONTACT + LINKS 🔥 */
+let contactHTML = "";
+
+if(data.phone) contactHTML += `<div>📞 ${data.phone}</div>`;
+if(data.email) contactHTML += `<div>✉️ ${data.email}</div>`;
+if(data.address) contactHTML += `<div>📍 ${data.address}</div>`;
+
+/* LINKS FIX */
+if(data.linkedin) contactHTML += `<div>💼 ${data.linkedin}</div>`;
+if(data.github) contactHTML += `<div>🔗 ${data.github}</div>`;
+if(data.hackerrank) contactHTML += `<div>🏆 ${data.hackerrank}</div>`;
+
+if(contactHTML){
+  document.querySelector(".contact").innerHTML = contactHTML;
+}else{
+  document.getElementById("contactSec").style.display="none";
+}
+
+/* EDUCATION 🔥 FULL FIX */
+let edu = data.education || {};
+let eduHTML = "";
+
+if(edu.boardUG || edu.percentUG){
+  eduHTML += `<div><b>Graduation:</b> ${edu.boardUG || ""} ${edu.percentUG ? "("+edu.percentUG+")" : ""}</div>`;
+}
+
+if(edu.school12 || edu.percent12){
+  eduHTML += `<div><b>12th:</b> ${edu.school12 || ""} ${edu.percent12 ? "("+edu.percent12+"%)" : ""}</div>`;
+}
+
+if(edu.school10 || edu.percent10){
+  eduHTML += `<div><b>10th:</b> ${edu.school10 || ""} ${edu.percent10 ? "("+edu.percent10+"%)" : ""}</div>`;
+}
+
+/* PG FIX */
+if(edu.boardPG || edu.percentPG){
+  eduHTML += `<div><b>Post Graduation:</b> ${edu.boardPG || ""} ${edu.percentPG ? "("+edu.percentPG+")" : ""}</div>`;
+}
+
+if(eduHTML){
+  document.querySelector(".edu").innerHTML = eduHTML;
+}else{
+  document.getElementById("eduSec").style.display="none";
+}
+
+/* SKILLS */
+if(data.skills && data.skills.length){
+  data.skills.forEach(s=>{
+    if(s.trim()!==""){
+      document.querySelector(".skills").innerHTML += `<li>${s}</li>`;
+    }
+  });
+}else{
+  document.getElementById("skillSec").style.display="none";
+}
+
+/* EXPERIENCE */
+if(data.experience && data.experience.length){
+  data.experience.forEach(e=>{
+    if(e.role || e.company || e.desc){
+      document.querySelector(".exp").innerHTML += `
+        <div class="exp-item">
+          <b>${e.role || ""}</b><br>
+          ${e.company || ""}<br>
+          ${e.desc || ""}
+        </div>`;
+    }
+  });
+}else{
+  document.getElementById("expSec").style.display="none";
+}
+
+/* PROJECTS */
+const projDiv = document.querySelector(".projects");
+
+if(data.projects && data.projects.length){
+
+  let html = "";
+
+  data.projects.forEach(p=>{
+    if(p.title?.trim() || p.desc?.trim()){
+      html += `
+        <div class="exp-item">
+          <b>${p.title || ""}</b><br>
+          ${p.desc || ""}
+        </div>`;
+    }
+  });
+
+  if(html.trim()){
+    projDiv.innerHTML = html;
+  }else{
+    document.getElementById("projectSec").style.display="none";
+  }
+
+}else{
+  document.getElementById("projectSec").style.display="none";
+}
+
+/* 🔥 CUSTOM SECTIONS */
+
+if(data.custom && data.custom.length){
+
+  const container = document.getElementById("customContainer");
+
+  data.custom.forEach(c=>{
+
+    if(c.heading?.trim() || c.desc?.trim()){
+
+      let section = document.createElement("div");
+      section.className = "section";
+
+      section.innerHTML = `
+        <h3>${c.heading || "CUSTOM"}</h3>
+        <div class="text">${c.desc || ""}</div>
+      `;
+
+      container.appendChild(section);
+    }
+
+  });
+
+}
+
+/* CERTIFICATIONS */
+if(data.certificates && data.certificates.length){
+  data.certificates.forEach(c=>{
+    if(c.name){
+      document.querySelector(".cert").innerHTML += `
+        <div><b>${c.name}</b><br>${c.org || ""}</div>`;
+    }
+  });
+}else{
+  document.getElementById("certSec").style.display="none";
+}
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    let opt = {
+        margin: 0,
+        filename: (document.querySelector(".name").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.6,
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+</body>
+</html>

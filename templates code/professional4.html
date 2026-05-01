@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Elegant Resume</title>
+
+<style>
+body{
+  margin:0;
+  background:#ccc;
+  font-family:'Georgia', serif;
+}
+
+.resume{
+  width:210mm;
+  min-height:290mm;
+  margin:0 auto;
+  background:#f4f4f4;
+  box-shadow:0 0 15px rgba(0,0,0,0.2);
+  box-sizing: border-box;
+}
+
+.header{
+  background:#2f3e4e;
+  color:#d4b483;
+  text-align:center;
+  padding:40px 20px;
+}
+
+.logo{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:#d4b483;
+  margin:0 auto 15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  color:#2f3e4e;
+  font-size:18px;
+  letter-spacing:2px;
+}
+
+.name{
+  font-size:34px;
+  letter-spacing:5px;
+  font-weight:bold;
+  font-style:italic;
+}
+
+.role{
+  font-size:14px;
+  letter-spacing:3px;
+  margin-top:8px;
+  color:white;
+  font-style:italic;
+}
+
+.main{ display:flex; }
+
+.left{
+  width:35%;
+  padding:25px;
+  border-right:1px solid #ccc;
+}
+
+.right{
+  width:65%;
+  padding:25px;
+}
+
+.section{ margin-bottom:28px; }
+
+.section-title{
+  font-size:13px;
+  letter-spacing:3px;
+  font-weight:bold;
+  margin-bottom:10px;
+  border-bottom:1px solid #bbb;
+  padding-bottom:5px;
+  font-style:italic;
+}
+
+.item{
+  margin:8px 0;
+  font-size:14px;
+  font-style:italic;
+}
+
+ul{ padding-left:18px; }
+li{ margin:5px 0; font-style:italic; }
+
+.hide{ display:none; }
+</style>
+</head>
+
+<body>
+<div id="pdfArea">
+<div class="resume">
+
+<div class="header">
+  <div class="logo" id="rlogo"></div>
+  <div class="name" id="rname"></div>
+  <div class="role" id="rrole"></div>
+</div>
+
+<div class="main">
+
+<!-- LEFT -->
+<div class="left">
+
+<div id="contactSection" class="section hide">
+  <div class="section-title">CONTACT</div>
+  <div id="rcontact"></div>
+</div>
+
+<div id="eduSection" class="section hide">
+  <div class="section-title">EDUCATION</div>
+  <div id="reducation"></div>
+</div>
+
+<div id="skillSection" class="section hide">
+  <div class="section-title">SKILLS</div>
+  <ul id="rskills"></ul>
+</div>
+
+<div id="certSection" class="section hide">
+  <div class="section-title">CERTIFICATES</div>
+  <div id="rcert"></div>
+</div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+
+<div id="summarySection" class="section hide">
+  <div class="section-title">SUMMARY</div>
+  <div id="rsummary" class="item"></div>
+</div>
+
+<div id="workSection" class="section hide">
+  <div class="section-title">WORK EXPERIENCE</div>
+  <div id="rwork"></div>
+</div>
+
+<div id="projectSection" class="section hide">
+  <div class="section-title">PROJECTS</div>
+  <div id="rprojects"></div>
+</div>
+
+<div id="customSection" class="section hide">
+  <div class="section-title">ADDITIONAL</div>
+  <div id="rcustom"></div>
+</div>
+
+</div>
+
+</div>
+</div>
+</div>
+
+<div style="text-align:center; margin:15px;">
+<button onclick="downloadResume()">Download PDF</button>
+</div>
+
+<script>
+
+let data = JSON.parse(localStorage.getItem("resumeData")) || {};
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+if(data && !sessionStorage.getItem("saved")){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template: "templates code/professional4.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+    sessionStorage.setItem("saved", "true");
+}
+
+// NAME + ROLE
+setText("rname", data.name);
+setText("rrole", data.role);
+
+// LOGO
+if(data.name){
+  let initials = data.name.split(" ").map(n=>n[0]).slice(0,2).join("").toUpperCase();
+  document.getElementById("rlogo").innerText = initials;
+}
+
+// CONTACT + LINKS
+let contactHTML="";
+if(data.phone) contactHTML+=`<div class="item">📞 ${data.phone}</div>`;
+if(data.email) contactHTML+=`<div class="item">✉️ ${data.email}</div>`;
+if(data.address) contactHTML+=`<div class="item">📍 ${data.address}</div>`;
+if(data.linkedin) contactHTML+=`<div class="item"><b>LinkedIn:</b> ${data.linkedin}</div>`;
+if(data.github) contactHTML+=`<div class="item"><b>GitHub:</b> ${data.github}</div>`;
+if(data.hackerrank) contactHTML+=`<div class="item"><b>HackerRank:</b> ${data.hackerrank}</div>`;
+setHTML("rcontact", contactHTML);
+toggle("contactSection", contactHTML);
+
+// EDUCATION
+let eduHTML="";
+let e = data.education || {};
+if(e.school10) eduHTML+=`<div class="item"><b>10th</b><br>${e.school10} ${e.board10? "- "+e.board10:""}<br>${e.percent10? e.percent10+"%":""}</div>`;
+if(e.school12) eduHTML+=`<div class="item"><b>12th</b><br>${e.school12} ${e.board12? "- "+e.board12:""}<br>${e.percent12? e.percent12+"%":""}</div>`;
+if(e.boardUG) eduHTML+=`<div class="item"><b>UG</b><br>${e.boardUG}<br>${e.percentUG||""}</div>`;
+if(e.boardPG) eduHTML+=`<div class="item"><b>PG</b><br>${e.boardPG}<br>${e.percentPG||""}</div>`;
+setHTML("reducation", eduHTML);
+toggle("eduSection", eduHTML);
+
+// SKILLS
+let skillHTML="";
+(data.skills||[]).forEach(s=>{ if(s) skillHTML+=`<li>${s}</li>`; });
+setHTML("rskills", skillHTML);
+toggle("skillSection", skillHTML);
+
+// SUMMARY
+if(setText("rsummary", data.summary)) toggle("summarySection", true);
+
+// EXPERIENCE
+let workHTML="";
+(data.experience||[]).forEach(w=>{
+  if(w.role) workHTML+=`<div class="item"><b>${w.role}</b> ${w.company? "- "+w.company:""}<br>${w.desc||""}</div>`;
+});
+setHTML("rwork", workHTML);
+toggle("workSection", workHTML);
+
+// PROJECTS
+let projHTML="";
+(data.projects||[]).forEach(p=>{
+  if(p.title) projHTML+=`<div class="item"><b>${p.title}</b><br>${p.desc||""}</div>`;
+});
+setHTML("rprojects", projHTML);
+toggle("projectSection", projHTML);
+
+// CUSTOM
+let custHTML="";
+(data.custom||[]).forEach(c=>{
+  if(c.heading) custHTML+=`<div class="item"><b>${c.heading}</b><br>${c.desc||""}</div>`;
+});
+setHTML("rcustom", custHTML);
+toggle("customSection", custHTML);
+
+// CERTIFICATES
+let certHTML="";
+(data.certificates||[]).forEach(c=>{
+  if(c.name) certHTML+=`<div class="item">${c.name} ${c.org? "- "+c.org:""}</div>`;
+});
+setHTML("rcert", certHTML);
+toggle("certSection", certHTML);
+
+// HELPERS
+function setText(id,val){
+  if(val){ document.getElementById(id).innerText=val; return true; }
+  return false;
+}
+function setHTML(id,val){ document.getElementById(id).innerHTML=val; }
+function toggle(id,val){ if(val) document.getElementById(id).classList.remove("hide"); }
+
+// PDF
+function downloadResume(){
+  html2pdf().from(document.getElementById("pdfArea")).save((data.name||"Resume")+".pdf");
+}
+
+</script>
+
+</body>
+</html>

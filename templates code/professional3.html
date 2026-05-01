@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Modern Resume</title>
+
+<style>
+@page { size:A4; margin:0; }
+
+body{
+margin:0;
+font-family:Arial, sans-serif;
+background:#fff;
+}
+
+/* YELLOW BORDER + A4 */
+.wrapper{
+width:210mm;
+height:297mm;
+margin:0 auto;
+padding:8mm;
+background:#f1c40f;
+box-sizing:border-box;
+overflow:hidden;
+}
+
+.container{
+width:100%;
+height:100%;
+display:flex;
+background:#fff;
+box-sizing:border-box;
+overflow:hidden;
+}
+
+.left{
+width:30%;
+background:#dcdcdc;
+padding:20px;
+}
+
+.photo{
+width:140px;
+height:140px;
+border-radius:50%;
+border:6px solid #fff;
+overflow:hidden;
+margin:0 auto;
+margin-top:20px;
+background:#aaa;
+}
+
+.photo img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.left h3{
+margin-top:25px;
+border-bottom:2px solid #333;
+padding-bottom:5px;
+}
+
+.left p{
+font-size:14px;
+margin:6px 0;
+word-break:break-word;
+}
+
+.right{
+width:70%;
+}
+
+.header{
+background:#3f4a5a;
+color:#fff;
+height:130px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:28px;
+font-weight:bold;
+}
+
+.content{
+padding:25px 35px;
+}
+
+.section{
+margin-bottom:25px;
+position:relative;
+padding-left:35px;
+page-break-inside:avoid;
+}
+
+.section::before{
+content:"";
+position:absolute;
+left:10px;
+top:0;
+width:2px;
+height:100%;
+background:#999;
+}
+
+.icon{
+position:absolute;
+left:0;
+top:0;
+width:20px;
+height:20px;
+background:#3f4a5a;
+border-radius:50%;
+}
+
+.section h3{
+margin:0;
+margin-bottom:8px;
+color:#3f4a5a;
+border-bottom:2px solid #3f4a5a;
+padding-bottom:4px;
+}
+
+p{
+font-size:14px;
+margin:5px 0;
+}
+
+ul{
+margin:5px 0;
+padding-left:18px;
+}
+
+.hide{display:none;}
+</style>
+</head>
+
+<body>
+
+<div id="pdfArea">
+<div class="wrapper">
+<div class="container">
+
+<!-- LEFT -->
+<div class="left">
+
+<div class="photo hide" id="photoBox">
+<img id="rimage">
+</div>
+
+<div id="contactBlock" class="hide">
+<h3>CONTACT</h3>
+<p id="rphone"></p>
+<p id="remail"></p>
+<p id="raddress"></p>
+
+<!-- LINKS -->
+<p id="rlinkedin"></p>
+<p id="rgithub"></p>
+<p id="rhackerrank"></p>
+
+</div>
+
+<div id="certBlock" class="hide">
+<h3>CERTIFICATIONS</h3>
+<div id="awardSection"></div>
+</div>
+
+<div id="langBlock" class="hide">
+<h3>LANGUAGES</h3>
+<p id="rlang"></p>
+</div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+
+<div class="header" id="rname"></div>
+
+<div class="content">
+
+<div id="objectiveSection" class="section hide">
+<div class="icon"></div>
+<h3>CAREER OBJECTIVE</h3>
+<p id="robjective"></p>
+</div>
+
+<div id="skillSection" class="section hide">
+<div class="icon"></div>
+<h3>KEY SKILLS</h3>
+<ul id="rskills"></ul>
+</div>
+
+<div id="workSection" class="section hide">
+<div class="icon"></div>
+<h3>EXPERIENCE</h3>
+<div id="rwork"></div>
+</div>
+
+<div id="eduSection" class="section hide">
+<div class="icon"></div>
+<h3>EDUCATION</h3>
+<div id="reducation"></div>
+</div>
+
+<div id="projectSection" class="section hide">
+<div class="icon"></div>
+<h3>PROJECTS</h3>
+<div id="rprojects"></div>
+</div>
+
+<div id="customSection" class="section hide">
+<div class="icon"></div>
+<h3>ADDITIONAL</h3>
+<div id="rcustom"></div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<div style="text-align:center; margin:15px;">
+<button onclick="downloadResume()">Download PDF</button>
+</div>
+
+<script>
+
+/* SAFE LOAD */
+let data = {};
+try{
+data = JSON.parse(localStorage.getItem("resumeData")) || {};
+}catch(e){ data = {}; }
+
+// ===== SAVE TO HISTORY =====
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+// prevent duplicate save on refresh
+if(data && !sessionStorage.getItem("saved")){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template: "templates code/professional3.html", // ⚠️ update if needed
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    sessionStorage.setItem("saved", "true");
+}
+
+/* STOP IF EMPTY */
+if(!data || Object.keys(data).length===0){
+document.body.innerHTML="<h2 style='text-align:center;margin-top:50px;'>No data found</h2>";
+}
+
+/* HELPERS */
+function setText(id,val){
+if(val && val.toString().trim()!==""){
+document.getElementById(id).innerText=val;
+return true;
+}
+return false;
+}
+function setHTML(id,html){ document.getElementById(id).innerHTML=html; }
+function show(id){ document.getElementById(id).classList.remove("hide"); }
+
+/* IMAGE */
+if(data.image){ rimage.src=data.image; show("photoBox"); }
+
+/* NAME */
+setText("rname",data.name);
+
+/* CONTACT + LINKS */
+let contact=false;
+
+if(setText("rphone",data.phone)) contact=true;
+if(setText("remail",data.email)) contact=true;
+if(setText("raddress",data.address)) contact=true;
+
+if(data.linkedin){
+document.getElementById("rlinkedin").innerHTML =
+`<b>LinkedIn:</b> <a href="${data.linkedin}" target="_blank">${data.linkedin}</a>`;
+contact=true;
+}
+
+if(data.github){
+document.getElementById("rgithub").innerHTML =
+`<b>GitHub:</b> <a href="${data.github}" target="_blank">${data.github}</a>`;
+contact=true;
+}
+
+if(data.hackerrank){
+document.getElementById("rhackerrank").innerHTML =
+`<b>HackerRank:</b> <a href="${data.hackerrank}" target="_blank">${data.hackerrank}</a>`;
+contact=true;
+}
+
+if(contact) show("contactBlock");
+
+/* OBJECTIVE */
+if(setText("robjective",data.objective)) show("objectiveSection");
+
+/* SKILLS */
+if(data.skills?.length){
+setHTML("rskills",data.skills.map(s=>`<li>${s}</li>`).join(""));
+show("skillSection");
+}
+
+/* EXPERIENCE */
+if(data.experience?.length){
+let html="";
+data.experience.forEach(e=>{
+if(e.role||e.desc){
+html+=`<p><b>${e.role||""}</b> ${e.company? "- "+e.company:""}<br>${e.desc||""}</p>`;
+}
+});
+setHTML("rwork",html);
+show("workSection");
+}
+
+/* EDUCATION FIXED */
+let e=data.education||{};
+let eduHTML="";
+
+if(e.school10){
+eduHTML+=`<p><b>10th</b><br>${e.school10}<br>${e.board10||""} ${e.percent10? "- "+e.percent10+"%":""}</p>`;
+}
+if(e.school12){
+eduHTML+=`<p><b>12th</b><br>${e.school12}<br>${e.board12||""} ${e.percent12? "- "+e.percent12+"%":""}</p>`;
+}
+if(e.boardUG){
+eduHTML+=`<p><b>UG</b><br>${e.boardUG}<br>${e.percentUG||""}</p>`;
+}
+if(e.boardPG){
+eduHTML+=`<p><b>PG</b><br>${e.boardPG}<br>${e.percentPG||""}</p>`;
+}
+
+if(eduHTML){
+setHTML("reducation",eduHTML);
+show("eduSection");
+}
+
+/* PROJECTS */
+if(data.projects?.length){
+let html="";
+data.projects.forEach(p=>{
+if(p.title||p.desc){
+html+=`<p><b>${p.title||""}</b><br>${p.desc||""}</p>`;
+}
+});
+if(html){ setHTML("rprojects",html); show("projectSection"); }
+}
+
+/* CUSTOM */
+if(data.custom?.length){
+let html="";
+data.custom.forEach(c=>{
+if(c.heading||c.desc){
+html+=`<p><b>${c.heading||""}</b><br>${c.desc||""}</p>`;
+}
+});
+if(html){ setHTML("rcustom",html); show("customSection"); }
+}
+
+/* CERTIFICATES */
+if(data.certificates?.length){
+setHTML("awardSection",data.certificates.map(c=>`<p>${c.name}</p>`).join(""));
+show("certBlock");
+}
+
+/* LANGUAGES */
+if(setText("rlang",data.languages)) show("langBlock");
+
+/* PDF */
+function downloadResume(){
+html2pdf().set({
+margin:0,
+filename:(data.name||"Resume")+".pdf",
+image:{type:'jpeg',quality:1},
+html2canvas:{scale:2,scrollY:0},
+jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+}).from(document.getElementById("pdfArea")).save();
+}
+
+</script>
+
+</body>
+</html>

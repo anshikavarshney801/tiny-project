@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Fashion Resume</title>
+
+<style>
+body{
+  margin:0;
+  background:#ccc;
+  font-family:Arial, sans-serif;
+}
+
+.resume{
+  width:210mm;
+  min-height:290mm;
+  margin:0 auto;
+  display:flex;
+  background:#f5f5f5;
+  box-sizing: border-box;
+}
+
+/* LEFT */
+.left{
+  width:35%;
+  background:#3a3434;
+  color:white;
+  padding:25px;
+}
+
+.profile{
+  width:140px;
+  height:140px;
+  border-radius:20px;
+  background:#ccc;
+  margin:0 auto 20px;
+  overflow:hidden;
+}
+
+.profile img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.left-title{
+  background:#e67e2f;
+  padding:10px;
+  margin:20px 0 10px;
+  font-weight:bold;
+}
+
+/* RIGHT */
+.right{
+  width:65%;
+  padding:30px;
+}
+
+.hide{
+  display:none;
+}
+
+.name{
+  font-size:32px;
+  font-weight:bold;
+}
+
+.name span{
+  color:#e67e2f;
+}
+
+.role{
+  font-size:16px;
+  color:#555;
+  margin-bottom:20px;
+}
+
+.bar{
+  background:#e67e2f;
+  padding:10px;
+  font-weight:bold;
+  margin:20px 0 10px;
+}
+
+.item{ margin-bottom:6px; }
+</style>
+</head>
+
+<body>
+<div id="pdfArea">
+<div class="resume">
+
+<!-- LEFT -->
+<div class="left">
+
+<div class="profile" id="profileBox"></div>
+
+<div id="contactSection">
+  <div class="left-title">CONTACT</div>
+  <div id="contact"></div>
+</div>
+
+<div id="linksSection">
+  <div class="left-title">LINKS</div>
+  <div id="links"></div>
+</div>
+
+<div id="skillsSection">
+  <div class="left-title">SKILLS</div>
+  <div id="skills"></div>
+</div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+
+<div class="name" id="name"></div>
+<div class="role" id="role"></div>
+
+<div id="summarySection">
+  <div class="bar">SUMMARY</div>
+  <div id="summary"></div>
+</div>
+
+<div id="experienceSection">
+  <div class="bar">EXPERIENCE</div>
+  <div id="experience"></div>
+</div>
+
+<div id="educationSection">
+  <div class="bar">EDUCATION</div>
+  <div id="education"></div>
+</div>
+
+<div class="section hide" id="projectSection">
+  <h3>PROJECTS</h3>
+  <div id="rprojects"></div>
+</div>
+
+<div class="section hide" id="awardSection">
+<h3>CERTIFICATES</h3>
+<div id="raward"></div>
+
+<div class="section hide" id="customSection">
+  <div class="bar" id="customHeading"></div>
+  <div id="customContent"></div>
+</div>
+
+</div>
+</div>
+</div>
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+<script>
+
+let data = JSON.parse(localStorage.getItem("resumeData"));
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+if(!sessionStorage.getItem("saved")){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template: "templates code/professional2.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    sessionStorage.setItem("saved", "true");
+}
+if(data){
+
+/* IMAGE */
+if(data.image){
+  document.getElementById("profileBox").innerHTML =
+    `<img src="${data.image}">`;
+}else{
+  document.getElementById("profileBox").style.display="none";
+}
+
+/* NAME */
+if(data.name){
+  let parts = data.name.split(" ");
+  let first = parts[0] || "";
+  let last = parts.slice(1).join(" ");
+
+  document.getElementById("name").innerHTML =
+    first + " <span>" + last + "</span>";
+}else{
+  document.getElementById("name").style.display="none";
+}
+
+/* ROLE */
+if(data.role){
+  document.getElementById("role").innerText = data.role;
+}else{
+  document.getElementById("role").style.display="none";
+}
+
+/* CONTACT */
+let contactHTML = "";
+if(data.address) contactHTML += `<div class='item'>📍 ${data.address}</div>`;
+if(data.phone) contactHTML += `<div class='item'>📞 ${data.phone}</div>`;
+if(data.email) contactHTML += `<div class='item'>✉️ ${data.email}</div>`;
+
+toggle("contactSection", contactHTML);
+document.getElementById("contact").innerHTML = contactHTML;
+
+/* LINKS */
+let linksHTML = "";
+if(data.github) linksHTML += `<div class="item">🔗 ${data.github}</div>`;
+if(data.linkedin) linksHTML += `<div class="item">💼 ${data.linkedin}</div>`;
+if(data.hackerrank) linksHTML += `<div class="item">🏆 ${data.hackerrank}</div>`;
+
+toggle("linksSection", linksHTML);
+document.getElementById("links").innerHTML = linksHTML;
+
+/* SKILLS */
+let skillHTML="";
+(data.skills || []).forEach(s=>{
+  if(s.trim()!==""){
+    skillHTML += `<div class='item'>• ${s}</div>`;
+  }
+});
+
+toggle("skillsSection", skillHTML);
+document.getElementById("skills").innerHTML = skillHTML;
+
+/* SUMMARY */
+toggle("summarySection", data.summary);
+setText("summary", data.summary);
+
+/* EXPERIENCE */
+let expHTML="";
+(data.experience || []).forEach(e=>{
+  if(e.role || e.company || e.desc){
+    expHTML += `
+    <div class="item">
+      <b>${e.role || ""}</b> ${e.company ? "- "+e.company : ""}<br>
+      ${e.desc || ""}
+    </div>`;
+  }
+});
+
+toggle("experienceSection", expHTML);
+document.getElementById("experience").innerHTML = expHTML;
+
+/* EDUCATION */
+let eduHTML = "";
+
+if(data.education){
+
+  let e = data.education;
+
+  if(e.school10 || e.board10 || e.percent10){
+    eduHTML += `<div class="item">
+      <b>10th</b><br>
+      ${e.school10 || ""} ${e.board10 ? "- "+e.board10 : ""}<br>
+      ${e.percent10 ? "Percentage: "+e.percent10+"%" : ""}
+    </div>`;
+  }
+
+  if(e.school12 || e.board12 || e.percent12){
+    eduHTML += `<div class="item">
+      <b>12th</b><br>
+      ${e.school12 || ""} ${e.board12 ? "- "+e.board12 : ""}<br>
+      ${e.percent12 ? "Percentage: "+e.percent12+"%" : ""}
+    </div>`;
+  }
+
+  if(e.boardUG || e.percentUG){
+    eduHTML += `<div class="item">
+      <b>UG</b><br>
+      ${e.boardUG || ""}<br>
+      ${e.percentUG ? "Score: "+e.percentUG : ""}
+    </div>`;
+  }
+
+  if(e.boardPG || e.percentPG){
+    eduHTML += `<div class="item">
+      <b>PG</b><br>
+      ${e.boardPG || ""}<br>
+      ${e.percentPG ? "Score: "+e.percentPG : ""}
+    </div>`;
+  }
+}
+
+toggle("educationSection", eduHTML);
+document.getElementById("education").innerHTML = eduHTML;
+
+}
+
+if(data){
+/* PROJECTS */
+let projectHTML = "";
+
+(data.projects || []).forEach(p=>{
+  if(p.title?.trim() || p.desc?.trim()){
+    projectHTML += `
+    <div class="item">
+      <b>${p.title || ""}</b><br>
+      ${p.desc || ""}
+    </div>`;
+  }
+});
+
+setHTML("rprojects", projectHTML);
+toggle("projectSection", projectHTML.trim());
+
+/* CERTIFICATES */
+let awardHTML="";
+(data.certificates || []).forEach(c=>{
+  if(c.name?.trim()){
+    awardHTML += `<p>${c.name} ${c.org ? "- "+c.org : ""}</p>`;
+  }
+});
+
+setHTML("raward", awardHTML);
+toggle("awardSection", awardHTML.trim());
+
+}
+
+/* ✅ CUSTOM SECTION */
+let customHTML = "";
+let headingSet = false;
+
+// multiple possible formats handle karega
+let customData = data.customSections || data.customSection || data.custom || [];
+
+if(typeof customData === "object" && !Array.isArray(customData)){
+  customData = [customData];
+}
+
+customData.forEach(c => {
+
+  let heading = c.heading || c.title || "";
+  let content = c.content || c.desc || "";
+
+  if(content && content.trim() !== ""){
+    customHTML += `<div class="item">• ${content}</div>`;
+  }
+
+  if(!headingSet && heading && heading.trim() !== ""){
+    document.getElementById("customHeading").innerText = heading;
+    headingSet = true;
+  }
+});
+
+setHTML("customContent", customHTML);
+toggle("customSection", customHTML.trim());
+
+/* HELPERS */
+function toggle(id, value){
+  if(value && value.length !== 0){
+    document.getElementById(id).style.display = "block";
+  }else{
+    document.getElementById(id).style.display = "none";
+  }
+}
+
+function setHTML(id, html){
+  document.getElementById(id).innerHTML = html;
+}
+
+function setText(id,val){
+  if(val && val.trim()!==""){
+    document.getElementById(id).innerText = val;
+  }
+}
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    let opt = {
+        margin: 0,
+        filename: (document.querySelector(".name").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.6,
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+</body>
+</html>

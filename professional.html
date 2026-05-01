@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Professional Templates</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins', sans-serif;
+}
+
+/* BACKGROUND */
+body{
+  height:100vh;
+  background:url("backpro.jpeg") no-repeat center;
+  background-size:cover;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* BLUR OVERLAY */
+.overlay{
+  position:absolute;
+  width:100%;
+  height:100%;
+  backdrop-filter: blur(10px);
+  background:rgba(0,0,0,0.6);
+}
+
+/* CONTAINER */
+.container{
+  position:relative;
+  z-index:2;
+  width:90%;
+  max-width:1100px;
+  text-align:center;
+  color:white;
+}
+
+h1{
+  margin-bottom:30px;
+  font-weight:600;
+}
+
+/* GRID */
+.templates{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:25px;
+}
+
+/* CARD */
+.card{
+  background: rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:15px;
+  cursor:pointer;
+  transition:0.3s;
+  backdrop-filter: blur(6px);
+  border:1px solid rgba(255,255,255,0.1);
+}
+
+.card:hover{
+  transform: scale(1.05);
+  background: rgba(255,255,255,0.18);
+}
+
+/* IMAGE */
+.card img{
+  width:100%;
+  height:260px;
+  object-fit:cover;
+  border-radius:8px;
+}
+
+/* TEXT */
+.card h3{
+  margin-top:10px;
+  font-weight:500;
+}
+
+/* BACK BUTTON */
+.back-btn{
+  position:absolute;
+  top:20px;
+  left:20px;
+  background:rgba(255,255,255,0.2);
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+}
+
+.back-btn:hover{
+  background:rgba(255,255,255,0.4);
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<!-- BACK BUTTON -->
+<button class="back-btn" onclick="goBack()">← Back</button>
+
+<div class="container">
+
+<h1>Professional Resume Templates</h1>
+
+<div class="templates">
+
+  <!-- TEMPLATE 1 -->
+  <div class="card" onclick="selectTemplate('professional1')">
+    <img src="templates/temp15p.png">
+    <h3>Executive Clean</h3>
+  </div>
+
+  <!-- TEMPLATE 2 -->
+  <div class="card" onclick="selectTemplate('professional2')">
+    <img src="templates/temp7p.jpg.jpeg">
+    <h3>Corporate</h3>
+  </div>
+
+  <!-- TEMPLATE 3 -->
+  <div class="card" onclick="selectTemplate('professional3')">
+    <img src="templates/temp16p.webp">
+    <h3>Formal</h3>
+  </div>
+
+  <!-- TEMPLATE 4 -->
+  <div class="card" onclick="selectTemplate('professional4')">
+    <img src="templates/temp6p.webp">
+    <h3>Business Classic</h3>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+function selectTemplate(template){
+  localStorage.setItem("template", template);
+  window.location.href="form.html";
+}
+
+function goBack(){
+  window.location.href = "categories.html";
+}
+</script>
+
+</body>
+</html>

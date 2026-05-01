@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Pro - Portrait Edition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --bg-dark: #020617;
+            --glass: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { 
+            background: radial-gradient(circle at top left, #1e1b4b, #020617); 
+            color: var(--text-main); 
+            height: 100vh; display: flex; overflow: hidden; 
+        }
+
+        .sidebar { position: fixed; left: -280px; top: 0; width: 260px; height: 100%; padding: 25px; background: var(--glass); backdrop-filter: blur(12px); transition: 0.3s; z-index: 999; border-right: 1px solid rgba(255,255,255,0.1); overflow-y: auto; }
+        .sidebar.active { left: 0; }
+        .menu-btn { position: fixed; top: 20px; left: 20px; font-size: 22px; cursor: pointer; z-index: 1000; color: white; background: var(--glass); width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+
+        .main { flex: 1; display: flex; width: 100%; height: 100%; overflow: hidden; }
+        .chat { flex: 1; display: flex; flex-direction: column; padding: 80px 20px 20px; transition: 0.5s ease; max-width: 800px; margin: 0 auto; height: 100%; }
+        .chat.split { flex: 0.4; max-width: none; border-right: 1px solid rgba(255,255,255,0.1); margin: 0; }
+
+        #chatBox { flex: 1; overflow-y: auto; padding-right: 10px; margin-bottom: 10px; }
+        .msg { margin: 10px 0; display: flex; flex-direction: column; }
+        .bubble { padding: 12px 18px; border-radius: 18px; max-width: 85%; font-size: 14.5px; line-height: 1.5; }
+        .user .bubble { background: var(--primary); margin-left: auto; border-bottom-right-radius: 2px; box-shadow: 0 4px 15px var(--primary-glow); }
+        .bot .bubble { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 2px; }
+
+        .input-container { display: flex; align-items: center; gap: 10px; background: var(--glass); padding: 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        textarea { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-size: 15px; height: 25px; max-height: 150px; }
+        .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8; transition: 0.2s; }
+        .send-btn { background: var(--primary); border: none; width: 42px; height: 42px; border-radius: 12px; color: white; cursor: pointer; }
+
+        .preview { flex: 0; display: none; padding: 20px; background: #0f172a; height: 100%; }
+        .preview.active { flex: 0.6; display: flex; flex-direction: column; }
+        #resumePreview { flex: 1; background: white; border-radius: 12px; overflow-y: auto; color: black; }
+        #capture-area { min-height: 100%; padding: 0; }
+        
+        .preview-footer { display: flex; gap: 10px; margin-top: 15px; }
+        .action-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; }
+
+        /* History Items Style */
+        .hist-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .hist-actions { display: flex; gap: 10px; margin-top: 5px; }
+        .hist-btn { font-size: 12px; cursor: pointer; color: #94a3b8; background: none; border: none; }
+        .mic-active { color: #ef4444 !important; }
+    </style>
+</head>
+<body>
+
+<div class="menu-btn" onclick="toggleSidebar()">☰</div>
+<div class="sidebar" id="sidebar">
+    <button class="action-btn" style="background:var(--primary); color:white; width:100%" onclick="location.reload()">+ New Session</button>
+    <div id="historyList" style="margin-top: 20px;"></div>
+</div>
+
+<div class="main">
+    <div class="chat" id="chatSection">
+        <div id="chatBox"></div>
+        <div class="input-container">
+            <button class="icon-btn" onclick="document.getElementById('fileInput').click()" title="Upload Photo">📎</button>
+            <input type="file" id="fileInput" hidden onchange="handleFileUpload(this)">
+            
+            <!-- Voice Button -->
+            <button class="icon-btn" id="micBtn" onclick="startVoice()" title="Voice Input">🎤</button>
+            
+            <textarea id="userInput" placeholder="Reply to the bot..." rows="1"></textarea>
+            <button class="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <div class="preview" id="previewSection">
+        <div id="resumePreview">
+            <div id="capture-area"></div>
+        </div>
+        <div class="preview-footer">
+            <button class="action-btn" style="background:var(--primary); color:white" onclick="downloadPDF()">💾 Download PDF</button>
+            <button class="action-btn" style="background:#334155; color:white" onclick="closePreview()">✕ Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_KEY = "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";
+let conversation = [];
+let userPhoto = "";
+let currentSessionId = Date.now();
+
+const SYSTEM_PROMPT = `You are a Professional Resume Interviewer. 
+Your goal is to build a resume by asking the user questions one-by-one.
+FOLLOW THESE RULES:
+1. Start by asking for their Name and Target Job.
+2. ONLY ask ONE question at a time. Do not overwhelm the user.
+3. Every time the user gives info, reply with:
+   - A short conversational comment/acknowledgment.
+   - The NEXT question.
+   - A full <html> resume template reflecting the current data.
+4. Always use <img id="user-photo" src=""> in the resume for the profile picture.
+5. Language: Match the user's language.`;
+
+// --- VOICE LOGIC ---
+const startVoice = () => {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.onstart = () => document.getElementById('micBtn').classList.add('mic-active');
+    recognition.onend = () => document.getElementById('micBtn').classList.remove('mic-active');
+    recognition.onresult = (e) => {
+        document.getElementById('userInput').value = e.results[0][0].transcript;
+    };
+    recognition.start();
+};
+
+// --- CORE LOGIC ---
+async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const text = input.value.trim();
+    if (!text && !userPhoto) return;
+
+    addMsg('user', text);
+    conversation.push({ role: 'user', content: text });
+    input.value = '';
+    
+    saveHistory(); // Save progress locally
+
+    try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: "llama-3.1-8b-instant",
+                messages: [{ role: "system", content: SYSTEM_PROMPT }, ...conversation],
+                temperature: 0.6
+            })
+        });
+        const data = await res.json();
+        const reply = data.choices[0].message.content;
+        conversation.push({ role: 'assistant', content: reply });
+
+        const hasHtml = reply.includes("<html");
+        if (hasHtml) {
+            const htmlCode = reply.match(/<html[\s\S]*<\/html>/i)[0];
+            const textPart = reply.split(/<html/i)[0].trim();
+            if (textPart) addMsg('bot', textPart);
+            renderResume(htmlCode);
+        } else {
+            addMsg('bot', reply);
+        }
+        saveHistory();
+    } catch (e) {
+        addMsg('bot', "Server busy. Please try again.");
+    }
+}
+
+// --- HISTORY & CRUD LOGIC ---
+function saveHistory() {
+    let history = JSON.parse(localStorage.getItem('resume_history') || '{}');
+    history[currentSessionId] = {
+        conv: conversation,
+        photo: userPhoto,
+        title: conversation[1]?.content?.substring(0, 20) || "New Resume",
+        date: new Date().toLocaleString()
+    };
+    localStorage.setItem('resume_history', JSON.stringify(history));
+    renderHistoryList();
+}
+
+function renderHistoryList() {
+    const list = document.getElementById('historyList');
+    const history = JSON.parse(localStorage.getItem('resume_history') || '{}');
+    list.innerHTML = "";
+    Object.keys(history).reverse().forEach(id => {
+        const item = history[id];
+        const div = document.createElement('div');
+        div.className = 'hist-card';
+        div.innerHTML = `
+            <div style="cursor:pointer" onclick="loadSession('${id}')">
+                <small>${item.date}</small><br>
+                <strong>${item.title}</strong>
+            </div>
+            <div class="hist-actions">
+                <button class="hist-btn" onclick="editHistory('${id}')">✏️ Edit</button>
+                <button class="hist-btn" onclick="deleteHistory('${id}')">🗑️ Delete</button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function loadSession(id) {
+    const history = JSON.parse(localStorage.getItem('resume_history'));
+    const session = history[id];
+    currentSessionId = id;
+    conversation = session.conv;
+    userPhoto = session.photo;
+    document.getElementById('chatBox').innerHTML = "";
+    conversation.forEach(m => { if(m.role !== 'system') addMsg(m.role === 'user' ? 'user' : 'bot', m.content.split('<html')[0]); });
+    const lastBotMsg = [...conversation].reverse().find(m => m.content.includes('<html'));
+    if(lastBotMsg) renderResume(lastBotMsg.content.match(/<html[\s\S]*<\/html>/i)[0]);
+    toggleSidebar();
+}
+
+function deleteHistory(id) {
+    let history = JSON.parse(localStorage.getItem('resume_history'));
+    delete history[id];
+    localStorage.setItem('resume_history', JSON.stringify(history));
+    renderHistoryList();
+    if(id == currentSessionId) location.reload();
+}
+
+function editHistory(id) {
+    let history = JSON.parse(localStorage.getItem('resume_history'));
+    const newTitle = prompt("Enter new title for this session:", history[id].title);
+    if(newTitle) {
+        history[id].title = newTitle;
+        localStorage.setItem('resume_history', JSON.stringify(history));
+        renderHistoryList();
+    }
+}
+
+// --- UTILS ---
+function downloadPDF() {
+    const name = prompt("Enter PDF Name:", "My_Resume");
+    if(!name) return;
+    const element = document.getElementById('capture-area');
+    html2pdf().set({ margin:0, filename: name + '.pdf', html2canvas:{scale:2}, jsPDF:{unit:'in', format:'a4'} }).from(element).save();
+}
+
+function handleFileUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        userPhoto = e.target.result;
+        addMsg('user', "🖼️ Photo uploaded.");
+        saveHistory();
+    };
+    reader.readAsDataURL(file);
+}
+
+function renderResume(html) {
+    document.getElementById('chatSection').classList.add('split');
+    document.getElementById('previewSection').classList.add('active');
+    document.getElementById('capture-area').innerHTML = html;
+    setTimeout(() => {
+        const img = document.getElementById('user-photo');
+        if(img && userPhoto) {
+            img.src = userPhoto;
+            img.style.display = "block";
+            img.style.width = "100px"; img.style.height = "100px";
+            img.style.borderRadius = "50%"; img.style.objectFit = "cover";
+        }
+    }, 150);
+}
+
+function addMsg(role, text) {
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    div.innerHTML = `<div class="bubble">${text}</div>`;
+    const box = document.getElementById('chatBox');
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+function closePreview() { document.getElementById('previewSection').classList.remove('active'); document.getElementById('chatSection').classList.remove('split'); }
+
+window.onload = () => {
+    renderHistoryList();
+    addMsg('bot', "Hello! 🚀 I am Your Resume Builder. <br><br>First Of all tell me your **Full Name** and your **Job Role**?");
+};
+
+document.getElementById('userInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+</script>
+</body>
+</html>

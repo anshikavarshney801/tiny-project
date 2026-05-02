@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Select Template Type</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins', sans-serif;
+}
+
+/* BACKGROUND */
+body{
+  height:100vh;
+  background:url("backpro.jpeg") no-repeat center;
+  background-size:cover;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* BLUR OVERLAY */
+.overlay{
+  position:absolute;
+  width:100%;
+  height:100%;
+  backdrop-filter: blur(12px);
+  background:rgba(0,0,0,0.5);
+}
+
+/* CONTAINER */
+.container{
+  position:relative;
+  z-index:2;
+  width:90%;
+  max-width:1100px;
+  text-align:center;
+  color:white;
+}
+
+h1{
+  margin-bottom:30px;
+}
+
+/* GRID */
+.templates{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:25px;
+}
+
+/* CARD */
+.card{
+  background: rgba(255,255,255,0.1);
+  border-radius:15px;
+  padding:15px;
+  cursor:pointer;
+  transition:0.3s;
+  backdrop-filter: blur(8px);
+}
+
+.card:hover{
+  transform: scale(1.05);
+  background: rgba(255,255,255,0.2);
+}
+
+/* IMAGE */
+.card img{
+  width:100%;
+  height:260px;
+  object-fit:cover;
+  border-radius:10px;
+}
+
+/* TEXT */
+.card h3{
+  margin-top:10px;
+  font-weight:500;
+}
+
+/* BACK BUTTON */
+.back-btn{
+  position:absolute;
+  top:20px;
+  left:20px;
+  background:rgba(255,255,255,0.2);
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+}
+
+.back-btn:hover{
+  background:rgba(255,255,255,0.4);
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<!-- BACK BUTTON -->
+<button class="back-btn" onclick="goBack()">← Back</button>
+
+<div class="container">
+
+<h1>Select Template Type</h1>
+
+<div class="templates">
+
+  <div class="card" onclick="go('simple.html')">
+    <img src="templates/temp19s.jpg.jpeg">
+    <h3>Simple</h3>
+  </div>
+
+  <div class="card" onclick="go('modern.html')">
+    <img src="templates/temp5m.jfif.jpeg">
+    <h3>Modern</h3>
+  </div>
+
+  <div class="card" onclick="go('creative.html')">
+    <img src="templates/temp14c.jpg.jpeg">
+    <h3>Creative</h3>
+  </div>
+
+  <div class="card" onclick="go('professional.html')">
+    <img src="templates/temp15p.png">
+    <h3>Professional</h3>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+function go(page){
+  window.location.href = page;
+}
+
+function goBack(){
+  window.location.href = "options.html";
+}
+</script>
+
+</body>
+</html>

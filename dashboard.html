@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Resume Builder Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a, #1e3a8a);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+/* USER INFO */
+.user-info {
+  text-align: center;
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.user-info img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.edit-btn {
+  position: absolute;
+  bottom: 55px;
+  right: 75px;
+  background: #4e54c8;
+  border: none;
+  border-radius: 50%;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.edit-btn i {
+  color: white;
+  font-size: 12px;
+}
+
+.user-info h3 {
+  font-size: 17px;
+}
+
+.user-info p {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* NAV */
+.nav-links {
+  flex: 1;
+}
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin: 8px 0;
+  text-decoration: none;
+  color: #ccc;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.nav-links a:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+/* LOGOUT */
+.logout a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  text-decoration: none;
+  color: #ff6b6b;
+}
+
+.logout a:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* MAIN BACKGROUND */
+.main {
+  flex: 1;
+  position: relative;
+  background: url("backpro.jpeg") no-repeat center center;
+  background-size: cover; /* fills nicely without weird zoom */
+}
+
+/* TEXT */
+.welcome {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  color: white;
+  z-index: 2;
+}
+
+.welcome h1 {
+  font-size: 32px;
+}
+
+.welcome p {
+  margin-top: 10px;
+  max-width: 400px;
+  opacity: 0.85;
+}
+
+/* BUTTON */
+.start-btn {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  padding: 12px 28px;
+  border: 2px solid white;
+  border-radius: 30px;
+  color: white;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 2;
+  transition: 0.3s;
+}
+
+.start-btn:hover {
+  background: rgba(255,255,255,0.15);
+  transform: scale(1.05);
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+
+  <div class="user-info">
+  <img id="profileImg" src="https://i.pravatar.cc/150">
+  <button class="edit-btn"><i class="fas fa-pen"></i></button>
+
+  <h3 id="username">User</h3>
+  <p id="useremail">email@example.com</p>
+
+  <!-- hidden file input -->
+  <input type="file" id="imgInput" style="display:none">
+</div>
+    
+
+  <div class="nav-links">
+    <a href="settings.html">
+  <i class="fas fa-cog"></i> Settings
+</a>
+    <a href="simple history.html">
+  <i class="fas fa-history"></i> History
+</a>
+  </div>
+
+  <div class="logout">
+   
+<a href="javascript:void(0)" onclick="logout()">
+  <i class="fas fa-sign-out-alt"></i> Logout
+</a>
+  </div>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="welcome">
+    <h1>Welcome to Resume Builder 👋</h1>
+    <p>Create professional resumes easily and stand out with modern designs.</p>
+  </div>
+
+  <button class="start-btn" onclick="goToOptions()">
+    Get Started
+  </button>
+
+</div>
+<script>
+
+
+function logout(){
+  localStorage.removeItem("user");
+  window.location.href = "login_page.html";
+}
+
+function goToOptions(){
+  window.location.href="option.html";
+}
+
+/* 🔥 LOAD USER DATA */
+const user = JSON.parse(localStorage.getItem("user"));
+
+if(user){
+  document.getElementById("username").innerText =
+    user.name || "User";
+
+  document.getElementById("useremail").innerText =
+    user.email || "";
+
+  if(user.image){
+    document.getElementById("profileImg").src = user.image;
+  }
+}
+function addHistory(msg){
+  let data = JSON.parse(localStorage.getItem("history")) || [];
+
+  data.unshift({
+    text: msg,
+    time: new Date().toLocaleString()
+  });
+
+  localStorage.setItem("history", JSON.stringify(data));
+}
+function addNotification(msg){
+  let data = JSON.parse(localStorage.getItem("notifications")) || [];
+  data.unshift(msg);
+  localStorage.setItem("notifications", JSON.stringify(data));
+}
+addNotification("Welcome to Resume Builder 🎉");
+
+/* 🔥 CHANGE IMAGE FROM DASHBOARD */
+document.querySelector(".edit-btn").onclick = () => {
+  document.getElementById("imgInput").click();
+};
+
+imgInput.onchange = function(e){
+  const file = e.target.files[0];
+
+  if(file){
+    const reader = new FileReader();
+    reader.onload = function(e){
+
+      document.getElementById("profileImg").src = e.target.result;
+
+      let user = JSON.parse(localStorage.getItem("user"));
+      user.image = e.target.result;
+      localStorage.setItem("user", JSON.stringify(user));
+
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+window.addEventListener("focus", () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if(user){
+    username.innerText = user.name || "User";
+    useremail.innerText = user.email || "";
+  }
+});
+
+</script>
+
+</body>
+</html>

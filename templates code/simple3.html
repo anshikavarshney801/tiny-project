@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Professional Resume</title>
+
+<style>
+body{
+  margin:0;
+  background:#ccc;
+  font-family:Arial, sans-serif;
+}
+
+/* A4 */
+.resume{
+  width:210mm;
+  min-height:290mm;
+  margin:0 auto;
+  background:#fff;
+  padding:40px;
+  box-sizing:border-box;
+}
+
+/* NAME */
+.name{
+  font-size:42px;
+  font-weight:900;
+  letter-spacing:2px;
+}
+
+/* ROLE */
+.role{
+  font-size:16px;
+  color:#555;
+  margin-top:5px;
+}
+
+/* CONTACT */
+.contact{
+  margin-top:15px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:25px;
+  font-size:14px;
+}
+
+/* SECTION */
+.section{
+  margin-top:30px;
+}
+
+.section h2{
+  font-size:18px;
+  border-bottom:2px solid black;
+  padding-bottom:5px;
+  margin-bottom:10px;
+}
+
+p{ margin:6px 0; }
+ul{ padding-left:18px; }
+</style>
+</head>
+
+<body>
+<div id="pdfArea">
+<div class="resume">
+
+  <!-- NAME -->
+  <div class="name" id="name"></div>
+  <div class="role" id="role"></div>
+
+  <!-- CONTACT -->
+  <div class="contact" id="contact"></div>
+
+  <!-- PROFILE -->
+  <div class="section" id="profileSection" style="display:none;">
+    <h2>PROFILE</h2>
+    <p id="profile"></p>
+  </div>
+
+  <!-- EXPERIENCE -->
+  <div class="section" id="expSection" style="display:none;">
+    <h2>PROFESSIONAL EXPERIENCE</h2>
+    <div id="experience"></div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="section" id="eduSection" style="display:none;">
+    <h2>EDUCATION</h2>
+    <div id="education"></div>
+  </div>
+
+  <!-- CERTIFICATION -->
+  <div class="section" id="certSection" style="display:none;">
+    <h2>CERTIFICATION</h2>
+    <div id="certificates"></div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="section" id="skillSection" style="display:none;">
+    <h2>TECHNICAL SKILLS</h2>
+    <ul id="skills"></ul>
+  </div>
+
+</div>
+</div>
+
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  const data = JSON.parse(localStorage.getItem("resumeData"));
+
+  let history = JSON.parse(localStorage.getItem("history")) || [];
+
+const historyKey = "history_" + Date.now() + "_" + (data?.name || "resume").replace(/\s+/g, "");
+if(!localStorage.getItem(historyKey)){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template: "templates code/simple3.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    localStorage.setItem(historyKey, "true");
+}
+
+  if(!data){
+    alert("No data found!");
+    return;
+  }
+
+  // NAME
+  document.getElementById("name").innerText = data.name || "";
+
+  // ROLE (optional - agar form me nahi hai toh blank)
+  document.getElementById("role").innerText = data.role || "";
+
+  // CONTACT
+  let contactHTML = "";
+
+  if(data.phone) contactHTML += `<div><b>Phone:</b> ${data.phone}</div>`;
+  if(data.email) contactHTML += `<div><b>Email:</b> ${data.email}</div>`;
+  if(data.address) contactHTML += `<div><b>Address:</b> ${data.address}</div>`;
+  if(data.github) contactHTML += `<div><b>GitHub:</b> ${data.github}</div>`;
+  if(data.linkedin) contactHTML += `<div><b>LinkedIn:</b> ${data.linkedin}</div>`;
+
+  document.getElementById("contact").innerHTML = contactHTML;
+
+  // PROFILE
+  if(data.objective){
+    document.getElementById("profileSection").style.display = "block";
+    document.getElementById("profile").innerText = data.objective;
+  }
+
+  // EDUCATION
+  let e = data.education;
+  if(e){
+    document.getElementById("eduSection").style.display = "block";
+
+    document.getElementById("education").innerHTML = `
+      ${e.school10 ? "10th - " + e.school10 + "<br>" : ""}
+      ${e.school12 ? "12th - " + e.school12 + "<br>" : ""}
+      ${e.boardUG ? "UG - " + e.boardUG + "<br>" : ""}
+      ${e.boardPG ? "PG - " + e.boardPG : ""}
+    `;
+  }
+
+  // SKILLS
+  if(data.skills && data.skills.length){
+    document.getElementById("skillSection").style.display = "block";
+
+    data.skills.forEach(s=>{
+      document.getElementById("skills").innerHTML += `<li>${s}</li>`;
+    });
+  }
+
+  // EXPERIENCE
+  if(data.experience && data.experience.length){
+    document.getElementById("expSection").style.display = "block";
+
+    data.experience.forEach(exp=>{
+      document.getElementById("experience").innerHTML += `
+        <p><b>${exp.role}</b> - ${exp.company}</p>
+        <p>${exp.desc}</p>
+      `;
+    });
+  }
+
+  // CERTIFICATES
+  if(data.certificates && data.certificates.length){
+    document.getElementById("certSection").style.display = "block";
+
+    data.certificates.forEach(c=>{
+      document.getElementById("certificates").innerHTML += `
+        <p>${c.name} - ${c.org}</p>
+      `;
+    });
+  }
+
+});
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    let opt = {
+        margin: 0,
+        filename: (document.querySelector(".name").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.6,
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+</body>
+</html>

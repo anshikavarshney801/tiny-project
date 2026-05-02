@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Resume Template</title>
+
+<style>
+body{
+  margin:0;
+  background:#ccc;
+  font-family:'Poppins',sans-serif;
+}
+
+/* A4 */
+.resume{
+  width:210mm;
+  min-height:290mm;
+  margin:0 auto;
+  background:#f5f5f5;
+  padding:40px 50px;
+  box-sizing:border-box;
+}
+
+/* NAME */
+.name{
+  font-size:44px;
+  font-weight:900;
+  letter-spacing:6px;
+}
+
+/* ROLE */
+.role{
+  font-size:18px;
+  margin-top:6px;
+  color:#444;
+  letter-spacing:2px;
+}
+
+/* CONTACT */
+.contact-bar{
+  margin-top:25px;
+  background:#d9dde1;
+  padding:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:15px;
+}
+
+.contact-item{
+  font-size:14px;
+}
+
+/* SECTION */
+.section{
+  margin-top:30px;
+}
+
+.section-title{
+  display:inline-block;
+  background:#d9dde1;
+  padding:6px 12px;
+  font-weight:600;
+}
+
+.line{
+  height:2px;
+  background:#333;
+  margin-top:5px;
+}
+
+p{ margin:6px 0; }
+ul{ padding-left:18px; }
+</style>
+</head>
+
+<body>
+<div id="pdfArea">
+<div class="resume">
+
+  <!-- NAME -->
+  <div class="name" id="name"></div>
+  <div class="role" id="role"></div>
+
+  <!-- CONTACT -->
+  <div class="contact-bar" id="contact"></div>
+
+  <!-- ABOUT -->
+  <div class="section" id="aboutSection" style="display:none;">
+    <div class="section-title">ABOUT ME</div>
+    <div class="line"></div>
+    <p id="about"></p>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="section" id="eduSection" style="display:none;">
+    <div class="section-title">EDUCATION</div>
+    <div class="line"></div>
+    <div id="education"></div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="section" id="skillSection" style="display:none;">
+    <div class="section-title">SKILL</div>
+    <div class="line"></div>
+    <ul id="skills"></ul>
+  </div>
+
+  <!-- EXPERIENCE -->
+  <div class="section" id="expSection" style="display:none;">
+    <div class="section-title">WORK EXPERIENCE</div>
+    <div class="line"></div>
+    <div id="experience"></div>
+  </div>
+
+  <!-- CUSTOM SECTIONS -->
+  <div class="section" id="customSection" style="display:none;">
+    <div class="section-title">ADDITIONAL INFORMATION</div>
+    <div class="line"></div>
+    <div id="customContent"></div>
+  </div>
+
+</div>
+</div>
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  const data = JSON.parse(localStorage.getItem("resumeData"));
+  let history = JSON.parse(localStorage.getItem("history")) || [];
+
+const historyKey = "history_" + Date.now() + "_" + (data?.name || "resume").replace(/\s+/g, "");
+if(!localStorage.getItem(historyKey)){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template: "templates code/simple4.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    localStorage.setItem(historyKey, "true");
+}
+  if(!data){
+    alert("No data found!");
+    return;
+  }
+
+  // NAME
+  document.getElementById("name").innerText = data.name || "";
+
+  // ROLE (optional)
+  document.getElementById("role").innerText = data.role || "";
+
+  // CONTACT
+  let contactHTML = "";
+
+  if(data.phone) contactHTML += `<div class="contact-item">📞 ${data.phone}</div>`;
+  if(data.email) contactHTML += `<div class="contact-item">✉ ${data.email}</div>`;
+  if(data.address) contactHTML += `<div class="contact-item">📍 ${data.address}</div>`;
+  if(data.github) contactHTML += `<div class="contact-item">GitHub: ${data.github}</div>`;
+  if(data.linkedin) contactHTML += `<div class="contact-item">LinkedIn: ${data.linkedin}</div>`;
+
+  document.getElementById("contact").innerHTML = contactHTML;
+
+  // ABOUT
+  if(data.objective){
+    document.getElementById("aboutSection").style.display = "block";
+    document.getElementById("about").innerText = data.objective;
+  }
+
+  // EDUCATION
+  let e = data.education;
+  if(e){
+    document.getElementById("eduSection").style.display = "block";
+
+    document.getElementById("education").innerHTML = `
+      ${e.school10 ? `<p><b>10th:</b> ${e.school10}</p>` : ""}
+      ${e.school12 ? `<p><b>12th:</b> ${e.school12}</p>` : ""}
+      ${e.boardUG ? `<p><b>UG:</b> ${e.boardUG}</p>` : ""}
+      ${e.boardPG ? `<p><b>PG:</b> ${e.boardPG}</p>` : ""}
+    `;
+  }
+
+  // SKILLS
+  if(data.skills && data.skills.length){
+    document.getElementById("skillSection").style.display = "block";
+
+    data.skills.forEach(s=>{
+      document.getElementById("skills").innerHTML += `<li>${s}</li>`;
+    });
+  }
+
+  // EXPERIENCE
+  if(data.experience && data.experience.length){
+    document.getElementById("expSection").style.display = "block";
+
+    data.experience.forEach(exp=>{
+      document.getElementById("experience").innerHTML += `
+        <p><b>${exp.role}</b> - ${exp.company}</p>
+        <p>${exp.desc}</p>
+      `;
+    });
+  }
+
+  // CUSTOM SECTIONS
+  if(data.custom && data.custom.length){
+    document.getElementById("customSection").style.display = "block";
+
+    data.custom.forEach(custom=>{
+      document.getElementById("customContent").innerHTML += `
+        <div class="section">
+          <div class="section-title">${custom.heading || "Custom Section"}</div>
+          <div class="line"></div>
+          <p>${custom.desc || ""}</p>
+        </div>`;
+    });
+  }
+
+});
+
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    let opt = {
+        margin: 0,
+        filename: (document.querySelector(".name").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.6,
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Creative Resume Final</title>
+
+<style>
+@page { size:A4; margin:0; }
+
+body{
+margin:0;
+font-family:'Segoe UI', sans-serif;
+background:#fff;
+}
+
+*{
+  box-sizing: border-box;
+}
+
+.container{
+width:210mm;
+min-height:290mm;
+margin:auto;
+display:flex;
+flex-direction:column;
+overflow:visible;
+}
+
+/* HEADER */
+.header{
+background:#2f4e6f;
+height:150px;
+position:relative;
+color:white;
+overflow:visible;
+}
+
+/* GREEN CIRCLE */
+.header::before{
+content:"";
+position:absolute;
+width:220px;
+height:220px;
+background:#6b8f8a;
+border-radius:50%;
+top:-80px;
+left:-80px;
+}
+
+/* BLUE CIRCLE */
+.header::after{
+content:"";
+position:absolute;
+width:120px;
+height:120px;
+background:#1e3a5f;
+border-radius:50%;
+left:80px;   /* 👈 moved to left side */
+top:20px;
+z-index:0;
+}
+
+/* LINES */
+.lines{
+position:absolute;
+left:0;
+top:0;
+width:120px;
+height:100%;
+background:repeating-linear-gradient(
+to right,
+rgba(255,255,255,0.2),
+rgba(255,255,255,0.2) 2px,
+transparent 2px,
+transparent 6px
+);
+}
+
+/* IMAGE */
+.photo{
+width:115px;
+height:115px;
+border-radius:50%;
+overflow:hidden;
+position:absolute;
+left:70px;
+top:90px;
+border:6px solid white;
+background:#aaa;
+z-index:5;
+}
+
+.photo img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.top-info{
+margin-left:220px;
+padding-top:25px;
+}
+
+.name{
+font-size:36px;
+font-weight:300;
+letter-spacing:2px;
+}
+
+.contact{
+font-size:13px;
+opacity:0.9;
+}
+
+/* BODY */
+.main{
+display:flex;
+flex:1;
+}
+
+/* LEFT */
+.left{
+width:35%;
+background:#dbe5e8;
+padding:80px 20px 20px;
+}
+
+/* RIGHT */
+.right{
+width:65%;
+padding:25px;
+background:#f5f6f7;
+}
+
+/* SECTION */
+.section{
+margin-bottom:18px;
+}
+
+.section h3{
+background:#2f4e6f;
+color:white;
+display:inline-block;
+padding:5px 15px;
+border-radius:20px;
+font-size:14px;
+margin-bottom:8px;
+}
+
+ul{ padding-left:18px; }
+p{ font-size:14px; margin:4px 0; }
+
+.hide{display:none;}
+@media print {
+  button {
+    display:none;
+  }
+}
+</style>
+</head>
+
+<body>
+    <div id="pdfArea">
+<div class="container">
+
+<div class="header">
+<div class="lines"></div>
+
+<div class="photo hide" id="photoBox">
+<img id="rimage">
+</div>
+
+<div class="top-info">
+<div class="contact" id="rcontact"></div>
+<div class="name" id="rname"></div>
+</div>
+</div>
+
+<div class="main">
+
+<!-- LEFT -->
+<div class="left">
+
+<div id="eduSection" class="section hide">
+<h3>EDUCATION</h3>
+<div id="reducation"></div>
+</div>
+
+<div id="customSection" class="section hide">
+<h3>ADDITIONAL</h3>
+<div id="rcustom"></div>
+</div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+
+<div id="skillsSection" class="section hide">
+<h3>SKILLS</h3>
+<ul id="rskills"></ul>
+</div>
+
+<div id="expSection" class="section hide">
+<h3>EXPERIENCE</h3>
+<div id="rexperience"></div>
+</div>
+
+<div id="certSection" class="section hide">
+<h3>CERTIFICATES</h3>
+<div id="rcert"></div>
+</div>
+
+<div id="projectSection" class="section hide">
+<h3>PROJECTS</h3>
+<div id="rprojects"></div>
+</div>
+
+</div>
+
+</div>
+</div>
+</div>
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+
+<script>
+
+let data = JSON.parse(localStorage.getItem("resumeData")) || {};
+
+// ===== SAVE TO HISTORY =====
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+// prevent duplicate save on refresh
+if(!sessionStorage.getItem("saved")){
+
+    history.push({
+    id: Date.now(),
+    name: data.name || "Unnamed Resume",   // ✅ ADD THIS
+    template: "templates code/creative1.html",
+    data: data,
+    time: new Date().toLocaleString()
+});
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    sessionStorage.setItem("saved", "true");
+}
+
+/* IMAGE */
+if(data.image){
+rimage.src = data.image;
+photoBox.classList.remove("hide");
+}
+
+/* NAME */
+rname.innerText = data.name || "";
+
+/* CONTACT */
+let c = [];
+if(data.phone) c.push(data.phone);
+if(data.email) c.push(data.email);
+if(data.linkedin) c.push(data.linkedin);
+rcontact.innerText = c.join(" • ");
+
+/* SKILLS */
+if(data.skills?.length){
+rskills.innerHTML = data.skills.map(s=>`<li>${s}</li>`).join("");
+skillsSection.classList.remove("hide");
+}
+
+/* EDUCATION */
+if(data.education){
+let e = data.education;
+let html = "";
+
+if(e.school10) html += `<p><b>10th</b><br>${e.school10}<br>${e.board10} - ${e.percent10}%</p>`;
+if(e.school12) html += `<p><b>12th</b><br>${e.school12}<br>${e.board12} - ${e.percent12}%</p>`;
+if(e.boardUG) html += `<p><b>UG</b><br>${e.boardUG}<br>${e.percentUG}</p>`;
+if(e.boardPG) html += `<p><b>PG</b><br>${e.boardPG}<br>${e.percentPG}</p>`;
+
+if(html){
+reducation.innerHTML = html;
+eduSection.classList.remove("hide");
+}
+}
+
+/* PROJECTS */
+if(data.projects?.length){
+rprojects.innerHTML = data.projects.map(p=>`<p><b>${p.title}</b><br>${p.desc}</p>`).join("");
+projectSection.classList.remove("hide");
+}
+
+/* CERTIFICATES */
+if(data.certificates?.length){
+rcert.innerHTML = data.certificates.map(c=>`<p><b>${c.name}</b><br>${c.org}</p>`).join("");
+certSection.classList.remove("hide");
+}
+
+/* CUSTOM */
+if(data.custom?.length){
+rcustom.innerHTML = data.custom.map(c=>`<p><b>${c.heading}</b><br>${c.desc}</p>`).join("");
+customSection.classList.remove("hide");
+}
+
+/* EXPERIENCE */
+if(data.experience?.length){
+rexperience.innerHTML = data.experience.map(e=>`
+<p><b>${e.role}</b><br>${e.company}<br>${e.desc}</p>
+`).join("");
+expSection.classList.remove("hide");
+}
+
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    let opt = {
+        margin: 0,
+        filename: (document.getElementById("rname").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.8,   // ✅ reduce from 2
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']   // ✅ prevents extra page
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+
+
+</script>
+
+</body>
+</html>

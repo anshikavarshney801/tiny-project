@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<meta charset="UTF-8">
+<title>Creative Resume</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:#e7e3df;
+}
+*{
+  box-sizing: border-box;
+}
+
+/* ✅ A4 + PATTERN */
+.resume{
+  width:210mm;
+  min-height:290mm;
+  margin:0px auto;
+  padding:20px;
+  position:relative;
+  overflow:hidden;
+  box-sizing: border-box;
+
+  background-color:#f5f2ee;
+
+  /* 🌿 ADVANCED PATTERN */
+  background-image:
+    radial-gradient(circle at 10% 20%, #d6d1ca 4px, transparent 4px),
+    radial-gradient(circle at 80% 30%, #d6d1ca 4px, transparent 4px),
+    radial-gradient(circle at 30% 80%, #d6d1ca 4px, transparent 4px),
+
+    /* 🌿 LEAFY BLOBS */
+    radial-gradient(ellipse 200px 100px at 20% 10%, rgba(180,170,160,0.25), transparent 70%),
+    radial-gradient(ellipse 150px 80px at 80% 90%, rgba(180,170,160,0.25), transparent 70%),
+    radial-gradient(ellipse 180px 90px at 60% 40%, rgba(180,170,160,0.15), transparent 70%);
+
+  background-size:
+    120px 120px,
+    120px 120px,
+    120px 120px,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+}
+/* LAYOUT */
+.container{
+  display:flex;
+  gap:30px;
+}
+
+/* LEFT */
+.left{
+  width:45%;
+}
+
+/* RIGHT */
+.right{
+  width:55%;
+  background:#dcd6cf;
+  padding:20px;
+  border-radius:20px;
+}
+
+/* PROFILE */
+.profile{
+  width:170px;
+  height:170px;
+  border-radius:50%;
+  overflow:hidden;
+  margin-bottom:20px;
+  border:5px solid #dcd6cf;
+}
+
+.profile img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* NAME */
+.name{
+  font-size:34px;
+  font-weight:600;
+}
+
+.role{
+  color:#777;
+  margin-bottom:20px;
+}
+
+/* SECTION */
+.section{
+  margin-bottom:20px;
+}
+
+.title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:15px 0;
+}
+
+.title span{
+  border:2px solid #999;
+  border-radius:20px;
+  padding:5px 15px;
+  font-weight:600;
+}
+
+.line{
+  flex:1;
+  height:2px;
+  background:#aaa;
+}
+
+/* TEXT */
+.text{
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* SKILLS */
+.skill{
+  margin:10px 0;
+}
+
+.bar{
+  height:6px;
+  background:#ddd;
+  border-radius:5px;
+}
+
+.fill{
+  height:6px;
+  background:#6d6a63;
+  border-radius:5px;
+}
+
+/* CONTACT */
+.contact div{
+  margin-bottom:8px;
+  font-size:13px;
+}
+
+/* EXPERIENCE */
+.exp-item{
+  margin-bottom:12px;
+}
+
+/* EDUCATION */
+.edu{
+  margin-top:20px;
+  background:#dcd6cf;
+  padding:15px;
+  border-radius:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="pdfArea">
+
+<div class="resume">
+
+<div class="container">
+
+  <!-- LEFT -->
+  <div class="left">
+
+    <div class="profile">
+      <img class="photo">
+    </div>
+
+    <div class="name"></div>
+    <div class="role"></div>
+
+    <!-- PROFILE -->
+    <div class="section" id="profileSec">
+      <div class="title"><span>PROFILE</span><div class="line"></div></div>
+      <div class="text summary"></div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="section" id="skillSec">
+      <div class="title"><span>SKILLS</span><div class="line"></div></div>
+      <div class="skills"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+
+    <!-- EXPERIENCE -->
+    <div class="section" id="expSec">
+      <div class="title"><span>EXPERIENCE</span><div class="line"></div></div>
+      <div class="exp"></div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="section" id="contactSec">
+      <div class="title"><span>CONTACT</span><div class="line"></div></div>
+      <div class="contact"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- EDUCATION -->
+<div class="section" id="eduSec">
+  <div class="title"><span>EDUCATION</span><div class="line"></div></div>
+  <div class="edu education"></div>
+</div>
+
+<!-- PROJECTS -->
+<div class="section" id="projectSec">
+  <div class="title"><span>PROJECTS</span><div class="line"></div></div>
+  <div class="projects"></div>
+</div>
+
+<!-- CERTIFICATES -->
+<div class="section" id="certSec">
+  <div class="title"><span>CERTIFICATES</span><div class="line"></div></div>
+  <div class="certificates"></div>
+</div>
+
+<div id="customContainer"></div>
+
+</div>
+</div>
+
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+<script>
+const data = JSON.parse(localStorage.getItem("resumeData")) || {};
+
+// ===== SAVE TO HISTORY =====
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+if(!sessionStorage.getItem("saved")){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template:"templates code/creative2.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    sessionStorage.setItem("saved", "true");
+}
+
+/* NAME */
+if(data.name){
+  document.querySelector(".name").innerText = data.name;
+}else{
+  document.querySelector(".name").style.display="none";
+}
+
+/* ROLE */
+if(data.role){
+  document.querySelector(".role").innerText = data.role;
+}else{
+  document.querySelector(".role").style.display="none";
+}
+
+/* IMAGE */
+if(data.image){
+  document.querySelector(".photo").src = data.image;
+}else{
+  document.querySelector(".profile").style.display="none";
+}
+
+/* PROFILE */
+if(data.summary){
+  document.querySelector(".summary").innerText = data.summary;
+}else{
+  document.getElementById("profileSec").style.display="none";
+}
+
+/* SKILLS */
+if(data.skills && data.skills.length){
+  data.skills.forEach((s,i)=>{
+    if(s.trim()!==""){
+      let width = 50 + i*10;
+      document.querySelector(".skills").innerHTML += `
+        <div class="skill">
+          ${s}
+          <div class="bar">
+            <div class="fill" style="width:${width}%"></div>
+          </div>
+        </div>`;
+    }
+  });
+}else{
+  document.getElementById("skillSec").style.display="none";
+}
+
+/* EXPERIENCE */
+if(data.experience && data.experience.length){
+  data.experience.forEach(e=>{
+    if(e.role || e.company || e.desc){
+      document.querySelector(".exp").innerHTML += `
+        <div class="exp-item">
+          <b>${e.role || ""}</b><br>
+          ${e.company || ""}<br>
+          ${e.desc || ""}
+        </div>`;
+    }
+  });
+}else{
+  document.getElementById("expSec").style.display="none";
+}
+
+/* CONTACT + LINKS 🔥 */
+let contactHTML="";
+
+if(data.phone) contactHTML += `<div><b>Mobile:</b> ${data.phone}</div>`;
+if(data.email) contactHTML += `<div><b>Email:</b> ${data.email}</div>`;
+if(data.address) contactHTML += `<div><b>Address:</b> ${data.address}</div>`;
+
+/* LINKS FIX */
+if(data.github) contactHTML += `<div><b>GitHub:</b> ${data.github}</div>`;
+if(data.linkedin) contactHTML += `<div><b>LinkedIn:</b> ${data.linkedin}</div>`;
+if(data.hackerrank) contactHTML += `<div><b>HackerRank:</b> ${data.hackerrank}</div>`;
+
+if(contactHTML){
+  document.querySelector(".contact").innerHTML = contactHTML;
+}else{
+  document.getElementById("contactSec").style.display="none";
+}
+
+/* EDUCATION 🔥 FULL FIX */
+let edu = data.education || {};
+let eduHTML="";
+
+if(edu.school10 || edu.percent10){
+  eduHTML += `<div>
+    <b>10th:</b> ${edu.school10 || ""} 
+    ${edu.board10 ? "- "+edu.board10 : ""} 
+    ${edu.percent10 ? "("+edu.percent10+"%)" : ""}
+  </div>`;
+}
+
+if(edu.school12 || edu.percent12){
+  eduHTML += `<div>
+    <b>12th:</b> ${edu.school12 || ""} 
+    ${edu.board12 ? "- "+edu.board12 : ""} 
+    ${edu.percent12 ? "("+edu.percent12+"%)" : ""}
+  </div>`;
+}
+
+if(edu.boardUG || edu.percentUG){
+  eduHTML += `<div>
+    <b>Graduation:</b> ${edu.boardUG || ""} 
+    ${edu.percentUG ? "("+edu.percentUG+")" : ""}
+  </div>`;
+}
+
+/* PG FIX */
+if(edu.boardPG || edu.percentPG){
+  eduHTML += `<div>
+    <b>Post Graduation:</b> ${edu.boardPG || ""} 
+    ${edu.percentPG ? "("+edu.percentPG+")" : ""}
+  </div>`;
+}
+
+if(eduHTML){
+  document.querySelector(".education").innerHTML = eduHTML;
+}else{
+  document.getElementById("eduSec").style.display="none";
+}
+
+/* PROJECTS */
+if(data.projects && data.projects.length){
+  let html = "";
+
+  data.projects.forEach(p=>{
+    if(p.title?.trim() || p.desc?.trim()){
+      html += `
+        <div class="exp-item">
+          <b>${p.title || ""}</b><br>
+          ${p.desc || ""}
+        </div>`;
+    }
+  });
+
+  document.querySelector(".projects").innerHTML = html;
+
+}else{
+  document.getElementById("projectSec").style.display = "none";
+}
+
+/* CERTIFICATES */
+if(data.certificates && data.certificates.length){
+  let html = "";
+
+  data.certificates.forEach(c=>{
+    if(c.name?.trim()){
+      html += `
+        <div class="exp-item">
+          ${c.name} ${c.org ? "- "+c.org : ""}
+        </div>`;
+    }
+  });
+
+  document.querySelector(".certificates").innerHTML = html;
+
+}else{
+  document.getElementById("certSec").style.display = "none";
+}
+
+/* CUSTOM SECTIONS */
+if(data.custom && data.custom.length){
+
+  let html = "";
+
+  data.custom.forEach(c=>{
+    if(c.heading?.trim() || c.desc?.trim()){
+      html += `
+      <div class="section">
+        <div class="title">
+          <span>${c.heading || "CUSTOM"}</span>
+          <div class="line"></div>
+        </div>
+        <div class="text">${c.desc || ""}</div>
+      </div>`;
+    }
+  });
+
+  document.getElementById("customContainer").innerHTML = html;
+
+}
+
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    // ✅ fix scaling + overflow issues
+    let opt = {
+        margin: 0,
+        filename: (document.querySelector(".name").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.8,        // ⚡ important (avoid extra page)
+            scrollY: 0,
+            useCORS: true
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+
+</script>
+
+</body>
+</html>

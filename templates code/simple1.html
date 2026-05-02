@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Resume</title>
+
+<style>
+body{
+  background:#ccc;
+  font-family:"Times New Roman", serif;
+}
+
+.page{
+  width:210mm;
+  min-height:290mm;
+  margin:0 auto;
+  background:white;
+  padding:20mm;
+  border:2px solid black;
+  box-sizing: border-box;
+}
+
+.title{
+  text-align:center;
+  border:2px solid black;
+  padding:8px;
+  font-weight:bold;
+  font-size:20px;
+  margin-bottom:20px;
+}
+
+.heading{
+  background:#d9d9d9;
+  padding:5px;
+  font-weight:bold;
+  margin:15px 0 10px 0;
+}
+
+.row{
+  display:flex;
+}
+
+.label{
+  width:160px;
+  font-weight:bold;
+}
+
+.value{
+  flex:1;
+}
+</style>
+</head>
+
+<body>
+<div id="pdfArea">
+<div class="page">
+
+<div class="title">RESUME</div>
+
+<!-- BASIC -->
+<div style="text-align:center; margin-bottom:15px;" id="basicSection">
+  <img id="profile" style="width:100px;height:100px;border-radius:50%;display:none;"><br>
+  <p id="name" style="font-size:20px; font-weight:bold;"></p>
+  <p id="address"></p>
+  <p id="emailRow" style="display:none;">Email: <span id="email"></span></p>
+  <p id="phoneRow" style="display:none;">Phone: <span id="phone"></span></p>
+</div>
+
+<!-- LINKS -->
+<div id="linksSection" style="display:none;">
+  <div class="heading">Links</div>
+  <p id="githubRow"></p>
+  <p id="linkedinRow"></p>
+  <p id="hackerrankRow"></p>
+</div>
+
+<!-- SKILLS -->
+<div id="skillsSection" style="display:none;">
+  <div class="heading">Skills</div>
+  <ul id="skills"></ul>
+</div>
+
+<!-- EDUCATION -->
+<div id="educationSection" style="display:none;">
+  <div class="heading">Education</div>
+  <ul id="education"></ul>
+</div>
+
+<!-- EXPERIENCE -->
+<div id="experienceSection" style="display:none;">
+  <div class="heading">Experience</div>
+  <div id="experience"></div>
+</div>
+
+<!-- PROJECT -->
+<div id="projectsSection" style="display:none;">
+  <div class="heading">Projects</div>
+  <div id="projects"></div>
+</div>
+
+<!-- CERTIFICATES -->
+<div id="certSection" style="display:none;">
+  <div class="heading">Certificates</div>
+  <div id="certificates"></div>
+</div>
+
+<!-- CUSTOM -->
+<div id="customSection" style="display:none;">
+  <div class="heading">Other</div>
+  <div id="custom"></div>
+</div>
+
+</div>
+</div>
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  const data = JSON.parse(localStorage.getItem("resumeData"));
+  let history = JSON.parse(localStorage.getItem("history")) || [];
+
+if(!sessionStorage.getItem("saved")){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template: "templates code/simple1.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    sessionStorage.setItem("saved", "true");
+}
+  if(!data) return;
+
+  // NAME
+  if(data.name){
+    document.getElementById("name").innerText = data.name;
+  }
+
+  // ADDRESS with heading
+  if(data.address){
+    document.getElementById("address").innerHTML = "<b>Address:</b> " + data.address;
+  }
+
+  // EMAIL
+  if(data.email){
+    document.getElementById("email").innerText = data.email;
+    document.getElementById("emailRow").style.display = "block";
+  }
+
+  // PHONE
+  if(data.phone){
+    document.getElementById("phone").innerText = data.phone;
+    document.getElementById("phoneRow").style.display = "block";
+  }
+
+  // IMAGE
+  if(data.image){
+    let img = document.getElementById("profile");
+    img.src = data.image;
+    img.style.display = "block";
+  }
+
+  // LINKS
+  if(data.github || data.linkedin || data.hackerrank){
+    document.getElementById("linksSection").style.display = "block";
+
+    if(data.github){
+      document.getElementById("githubRow").innerHTML =
+        "<b>GitHub:</b> " + data.github;
+    }
+
+    if(data.linkedin){
+      document.getElementById("linkedinRow").innerHTML =
+        "<b>LinkedIn:</b> " + data.linkedin;
+    }
+
+    if(data.hackerrank){
+      document.getElementById("hackerrankRow").innerHTML =
+        "<b>HackerRank:</b> " + data.hackerrank;
+    }
+  }
+
+  // SKILLS
+  if(data.skills && data.skills.length > 0){
+    document.getElementById("skillsSection").style.display = "block";
+
+    data.skills.forEach(skill=>{
+      document.getElementById("skills").innerHTML += `<li>${skill}</li>`;
+    });
+  }
+
+  // EDUCATION
+  let e = data.education;
+  if(e && (e.school10 || e.school12 || e.boardUG || e.boardPG)){
+    document.getElementById("educationSection").style.display = "block";
+
+    document.getElementById("education").innerHTML = `
+      ${e.school10 ? `<li>10th - ${e.school10} (${e.percent10 || ""}%)</li>` : ""}
+      ${e.school12 ? `<li>12th - ${e.school12} (${e.percent12 || ""}%)</li>` : ""}
+      ${e.boardUG ? `<li>UG - ${e.boardUG} (${e.percentUG || ""})</li>` : ""}
+      ${e.boardPG ? `<li>PG - ${e.boardPG} (${e.percentPG || ""})</li>` : ""}
+    `;
+  }
+
+  // EXPERIENCE
+  if(data.experience && data.experience.length > 0){
+    document.getElementById("experienceSection").style.display = "block";
+
+    data.experience.forEach(exp=>{
+      document.getElementById("experience").innerHTML += `
+        <div class="row"><div class="label">Role:</div><div class="value">${exp.role}</div></div>
+        <div class="row"><div class="label">Company:</div><div class="value">${exp.company}</div></div>
+        <div class="row"><div class="label">Description:</div><div class="value">${exp.desc}</div></div><br>
+      `;
+    });
+  }
+
+  // PROJECTS
+  if(data.projects && data.projects.length > 0){
+    document.getElementById("projectsSection").style.display = "block";
+
+    data.projects.forEach(p=>{
+      document.getElementById("projects").innerHTML += `
+        <div class="row"><div class="label">Title:</div><div class="value">${p.title}</div></div>
+        <div class="row"><div class="label">Description:</div><div class="value">${p.desc}</div></div><br>
+      `;
+    });
+  }
+
+  // CERTIFICATES
+  if(data.certificates && data.certificates.length > 0){
+    document.getElementById("certSection").style.display = "block";
+
+    data.certificates.forEach(c=>{
+      document.getElementById("certificates").innerHTML += `
+        <p><b>${c.name}</b> - ${c.org}</p>
+      `;
+    });
+  }
+
+  // CUSTOM
+  if(data.custom && data.custom.length > 0){
+    document.getElementById("customSection").style.display = "block";
+
+    data.custom.forEach(c=>{
+      document.getElementById("custom").innerHTML += `
+        <p><b>${c.heading}</b></p>
+        <p>${c.desc}</p><br>
+      `;
+    });
+  }
+
+});
+
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    let opt = {
+        margin: 0,
+        filename: (document.getElementById("name").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.6,
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+
+
+
+
+</script>
+
+</body>
+</html>

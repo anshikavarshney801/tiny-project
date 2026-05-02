@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<title>Elegant Resume</title>
+
+<style>
+body{
+  background:#e5e5e5;
+  font-family:'Georgia', serif;
+}
+
+/* PAGE */
+.page{
+  width:210mm;
+  height:290mm;
+  margin:0 auto;
+  background:#f7f7f7;
+  padding:25mm;
+  box-sizing:border-box;
+}
+
+/* HEADER */
+.header{
+  margin-bottom:25px;
+}
+
+.role-top{
+  letter-spacing:3px;
+  font-size:12px;
+  color:#777;
+}
+
+/* 🔥 NAME STYLE LIKE IMAGE */
+.name{
+  font-size:48px;
+  font-weight:500;
+  letter-spacing:3px;
+  line-height:1.1;
+  margin-top:5px;
+}
+
+/* MAIN */
+.main{
+  display:flex;
+  margin-top:20px;
+}
+
+/* LEFT */
+.left{
+  width:35%;
+  padding-right:25px;
+}
+
+/* RIGHT */
+.right{
+  width:65%;
+  padding-left:25px;
+}
+
+/* DIVIDER */
+.divider{
+  width:1px;
+  background:#ccc;
+}
+
+/* SECTION */
+.section{
+  margin-bottom:30px;
+}
+
+.section-title{
+  font-size:12px;
+  letter-spacing:3px;
+  color:#666;
+  margin-bottom:12px;
+  border-bottom:1px solid #ccc;
+  padding-bottom:6px;
+}
+
+/* TEXT */
+p{
+  margin:6px 0;
+  font-size:14px;
+  line-height:1.6;
+  color:#333;
+}
+
+/* LIST */
+ul{
+  padding-left:18px;
+}
+
+li{
+  margin-bottom:6px;
+}
+
+/* LINKS */
+a{
+  color:#333;
+  text-decoration:none;
+}
+
+a:hover{
+  text-decoration:underline;
+}
+</style>
+</head>
+
+<body>
+<div id="pdfArea">
+<div class="page">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="role-top" id="roleTop"></div>
+
+  <!-- 🔥 NAME SPLIT INTO 2 LINES -->
+  <div class="name">
+    <div id="firstName"></div>
+    <div id="lastName"></div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- LEFT -->
+<div class="left">
+
+  <div id="contactSection" class="section" style="display:none;">
+    <div class="section-title">CONTACT</div>
+    <div id="contact"></div>
+  </div>
+
+  <div id="skillsSection" class="section" style="display:none;">
+    <div class="section-title">SKILLS</div>
+    <ul id="skills"></ul>
+  </div>
+
+</div>
+
+<div class="divider"></div>
+
+<!-- RIGHT -->
+<div class="right">
+
+  <div id="summarySection" class="section" style="display:none;">
+    <div class="section-title">SUMMARY</div>
+    <p id="summary"></p>
+  </div>
+
+  <div id="experienceSection" class="section" style="display:none;">
+    <div class="section-title">WORK EXPERIENCE</div>
+    <div id="experience"></div>
+  </div>
+
+  <div id="educationSection" class="section" style="display:none;">
+    <div class="section-title">EDUCATION</div>
+    <div id="education"></div>
+  </div>
+
+</div>
+
+</div>
+</div>
+</div>
+
+<div style="text-align:center; margin:15px;">
+  <button onclick="downloadResume()">Download PDF</button>
+</div>
+
+
+<script>
+const data = JSON.parse(localStorage.getItem("resumeData")) || {};
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+if(!sessionStorage.getItem("saved")){
+
+    history.push({
+        id: Date.now(),
+        name: data.name || "Unnamed Resume",
+        template: "templates code/simple2.html",
+        data: data,
+        time: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("history", JSON.stringify(history));
+
+    sessionStorage.setItem("saved", "true");
+}
+
+/* 🔥 NAME SPLIT LIKE IMAGE */
+if(data.name){
+  let parts = data.name.toUpperCase().split(" ");
+  document.getElementById("firstName").innerText = parts[0] || "";
+  document.getElementById("lastName").innerText = parts.slice(1).join(" ");
+}
+
+/* ROLE */
+if(data.role){
+  document.getElementById("roleTop").innerText = data.role.toUpperCase();
+}else{
+  document.getElementById("roleTop").style.display="none";
+}
+
+/* CONTACT + LINKS */
+let contactHTML="";
+
+if(data.address) contactHTML += `<p>${data.address}</p>`;
+if(data.phone) contactHTML += `<p>${data.phone}</p>`;
+if(data.email) contactHTML += `<p>${data.email}</p>`;
+
+/* LINKS */
+if(data.linkedin) contactHTML += `<p><a href="${data.linkedin}" target="_blank">${data.linkedin}</a></p>`;
+if(data.github) contactHTML += `<p><a href="${data.github}" target="_blank">${data.github}</a></p>`;
+if(data.hackerrank) contactHTML += `<p><a href="${data.hackerrank}" target="_blank">${data.hackerrank}</a></p>`;
+
+if(contactHTML){
+  document.getElementById("contactSection").style.display="block";
+  document.getElementById("contact").innerHTML = contactHTML;
+}
+
+/* SKILLS */
+if(data.skills && data.skills.length){
+  document.getElementById("skillsSection").style.display="block";
+
+  data.skills.forEach(s=>{
+    if(s.trim()!==""){
+      document.getElementById("skills").innerHTML += `<li>${s}</li>`;
+    }
+  });
+}
+
+/* SUMMARY */
+if(data.summary){
+  document.getElementById("summarySection").style.display="block";
+  document.getElementById("summary").innerText = data.summary;
+}
+
+/* EXPERIENCE */
+if(data.experience && data.experience.length){
+  document.getElementById("experienceSection").style.display="block";
+
+  data.experience.forEach(e=>{
+    document.getElementById("experience").innerHTML += `
+      <p><b>${e.role || ""}</b> ${e.company ? "- "+e.company : ""}</p>
+      <p>${e.desc || ""}</p>
+      <br>`;
+  });
+}
+
+/* EDUCATION */
+let edu = data.education || {};
+let eduHTML="";
+
+if(edu.school10){
+  eduHTML += `<p><b>10th:</b> ${edu.school10} (${edu.percent10 || ""}%)</p>`;
+}
+
+if(edu.school12){
+  eduHTML += `<p><b>12th:</b> ${edu.school12} (${edu.percent12 || ""}%)</p>`;
+}
+
+if(edu.boardUG){
+  eduHTML += `<p><b>UG:</b> ${edu.boardUG} (${edu.percentUG || ""})</p>`;
+}
+
+if(edu.boardPG){
+  eduHTML += `<p><b>PG:</b> ${edu.boardPG} (${edu.percentPG || ""})</p>`;
+}
+
+if(eduHTML){
+  document.getElementById("educationSection").style.display="block";
+  document.getElementById("education").innerHTML = eduHTML;
+}
+function downloadResume() {
+
+    const element = document.getElementById("pdfArea");
+
+    let opt = {
+        margin: 0,
+        filename: (document.querySelector(".name").innerText || "Resume") + ".pdf",
+
+        html2canvas: {
+            scale: 1.6,
+            scrollY: 0
+        },
+
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        },
+
+        pagebreak: {
+            mode: ['avoid-all']
+        }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+</body>
+</html>
